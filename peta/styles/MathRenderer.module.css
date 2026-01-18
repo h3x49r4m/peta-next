@@ -1,0 +1,50 @@
+.mathRenderer {
+  line-height: 1.6;
+}
+
+.mathRenderer p {
+  margin-bottom: 1.5rem;
+}
+
+.mathRenderer ul,
+.mathRenderer ol {
+  margin: 1.5rem 0;
+  padding-left: 2rem;
+}
+
+.mathRenderer li {
+  margin-bottom: 0.5rem;
+}
+
+.mathRenderer h2,
+.mathRenderer h3,
+.mathRenderer h4 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.mathRenderer h2 {
+  font-size: 1.75rem;
+}
+
+.mathRenderer h3 {
+  font-size: 1.5rem;
+}
+
+.mathRenderer h4 {
+  font-size: 1.25rem;
+}
+
+.highlightHeader {
+  color: var(--primary-color, #0070f3);
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--primary-color, #0070f3);
+}
+
+.mathRenderer strong {
+  font-weight: 600;
+  color: var(--text-primary);
+}

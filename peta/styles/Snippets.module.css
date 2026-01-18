@@ -1,0 +1,90 @@
+.pageContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 var(--spacing-6) !important; /* Override Layout's padding */
+}
+
+.pageHeader {
+  margin-bottom: var(--spacing-8);
+  padding-top: var(--spacing-6);
+}
+
+.headerSection {
+  display: grid;
+  grid-template-columns: 25% 75%;
+  gap: 0; /* Remove gap between columns */
+  align-items: start;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.titleLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.titleLink:hover {
+  text-decoration: underline;
+}
+
+.tagsSection {
+  min-width: 0; /* Prevent overflow issues */
+  padding-left: var(--spacing-6); /* Add padding to align with content */
+}
+
+.mainContentFull {
+  width: 100%;
+}
+
+.header {
+  margin-bottom: var(--spacing-8);
+}
+
+.loading {
+  text-align: center;
+  padding: var(--spacing-12);
+  color: var(--text-secondary);
+  font-size: 1.125rem;
+}
+
+.tagInfo {
+  margin-bottom: var(--spacing-6);
+  padding: var(--spacing-4);
+  background-color: var(--surface-color, #f6f8fa);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* Responsive styles */
+@media (max-width: 1024px) {
+  .headerSection {
+    grid-template-columns: 240px 1fr;
+    gap: 0; /* Keep gap 0 */
+  }
+}
+
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: 0 var(--spacing-4) !important; /* Override Layout's padding */
+  }
+  
+  .title {
+    font-size: 2rem;
+  }
+  
+  .headerSection {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-6); /* Add gap back on mobile */
+  }
+  
+  .tagsSection {
+    padding-left: 0; /* Remove padding on mobile */
+  }
+}

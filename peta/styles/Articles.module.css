@@ -1,0 +1,367 @@
+.pageContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 var(--spacing-6) !important; /* Override Layout's padding */
+}
+
+.pageHeader {
+  margin-bottom: var(--spacing-8);
+  padding-top: var(--spacing-6);
+}
+
+.headerSection {
+  display: grid;
+  grid-template-columns: 25% 75%;
+  gap: 0; /* Remove gap between columns */
+  align-items: start;
+}
+
+.titleLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.titleLink:hover {
+  text-decoration: underline;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.tagsSection {
+  min-width: 0; /* Prevent overflow issues */
+  padding-left: var(--spacing-6); /* Add padding to align with content */
+}
+
+.contentSection {
+  display: grid;
+  grid-template-columns: 25% 75%;
+  gap: 0; /* Remove gap between columns */
+}
+
+.tocAside {
+  position: sticky;
+  top: 88px; /* Header height + spacing */
+  height: fit-content;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  padding-left: 0; /* Keep left padding 0 for TOC */
+}
+
+.mainContent {
+  min-width: 0; /* Prevent overflow issues */
+  width: 100%; /* Ensure main content uses full width */
+  padding-left: var(--spacing-6); /* Add left padding to match TOC */
+}
+
+.mainContentFull {
+  grid-column: 1 / -1; /* Span both columns when no TOC */
+  padding-left: 0; /* No padding when full width */
+}
+
+.postDetail {
+  max-width: 800px;
+}
+
+.backButton {
+  background: none;
+  border: none;
+  color: var(--primary-color, #0070f3);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: var(--spacing-2) 0;
+  margin-bottom: var(--spacing-6);
+  transition: color var(--transition-fast);
+}
+
+.backButton:hover {
+  color: var(--primary-hover, #0051cc);
+  text-decoration: underline;
+}
+
+.article {
+  line-height: 1.6;
+  width: 100%; /* Ensure article uses full width */
+  max-width: none; /* Remove max-width constraint */
+  margin: 0; /* Remove any margin */
+  padding: 0; /* Remove any padding */
+}
+
+.articleHeader {
+  margin-bottom: var(--spacing-8);
+  padding-bottom: var(--spacing-6);
+  border-bottom: 1px solid var(--border-color, #e1e5e9);
+}
+
+.articleTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-4);
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.articleMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.articleDate {
+  font-weight: 500;
+}
+
+.articleAuthor {
+  font-style: italic;
+}
+
+.articleTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.articleTag {
+  background-color: var(--surface-color, #f6f8fa);
+  color: var(--text-secondary);
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.articleContent {
+  font-size: 1.125rem;
+  line-height: 1.8;
+  width: 100%; /* Ensure content uses full width */
+  max-width: none; /* Remove max-width constraint */
+  margin: 0; /* Remove any margin */
+  padding: 0; /* Remove any padding */
+}
+
+.articleContent p {
+  margin-bottom: var(--spacing-6);
+}
+
+.articleContent h2 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin-top: var(--spacing-8);
+  margin-bottom: var(--spacing-4);
+  color: var(--text-primary);
+}
+
+.articleContent h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: var(--spacing-6);
+  margin-bottom: var(--spacing-3);
+  color: var(--text-primary);
+}
+
+.articleContent h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: var(--spacing-5);
+  margin-bottom: var(--spacing-3);
+  color: var(--text-primary);
+}
+
+.articleContent ul,
+.articleContent ol {
+  margin: var(--spacing-4) 0;
+  padding-left: var(--spacing-6);
+}
+
+.articleContent li {
+  margin-bottom: var(--spacing-2);
+}
+
+.snippetCard {
+  background-color: var(--surface-color, #f6f8fa);
+  border: 1px solid var(--border-color, #e1e5e9);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-5);
+  margin: var(--spacing-6) 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  width: 100%; /* Ensure snippet cards use full width */
+}
+
+.snippetHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-4);
+  padding-bottom: var(--spacing-3);
+  border-bottom: 1px solid var(--border-color, #e1e5e9);
+}
+
+.snippetHeader h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.snippetType {
+  background-color: var(--primary-color, #0070f3);
+  color: white;
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.snippetContent {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.snippetRef {
+  background-color: var(--surface-color, #f6f8fa);
+  border: 1px solid var(--border-color, #e1e5e9);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-4);
+  margin: var(--spacing-4) 0;
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+.math-display {
+  margin: var(--spacing-6) 0;
+  overflow-x: auto;
+  padding: var(--spacing-2) 0;
+}
+
+.math-inline {
+  display: inline-block;
+  margin: 0 2px;
+}
+
+.loading {
+  text-align: center;
+  padding: var(--spacing-12);
+  color: var(--text-secondary);
+  font-size: 1.125rem;
+}
+
+.tagInfo {
+  margin-bottom: var(--spacing-6);
+  padding: var(--spacing-4);
+  background-color: var(--surface-color, #f6f8fa);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.backToTop {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background-color: var(--primary-color, #0070f3);
+  color: white;
+  border: none;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.backToTop:hover {
+  background-color: var(--primary-hover, #0051cc);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.backToTop:active {
+  transform: translateY(0);
+}
+
+/* Responsive styles */
+@media (max-width: 1024px) {
+  .headerSection {
+    grid-template-columns: 240px 1fr;
+    gap: 0; /* Keep gap 0 */
+  }
+  
+  .contentSection {
+    grid-template-columns: 240px 1fr;
+    gap: 0; /* Keep gap 0 */
+  }
+}
+
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: 0 var(--spacing-4) !important; /* Override Layout's padding */
+  }
+  
+  .title {
+    font-size: 2rem;
+  }
+  
+  .headerSection {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-6); /* Add gap back on mobile */
+  }
+  
+  .contentSection {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-6); /* Add gap back on mobile */
+  }
+  
+  .tocAside {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+    margin-bottom: var(--spacing-6);
+    padding-left: 0; /* Keep left padding 0 */
+  }
+  
+  .mainContent {
+    padding-left: 0; /* Remove left padding on mobile */
+  }
+  
+  .tagsSection {
+    padding-left: 0; /* Remove padding on mobile */
+  }
+  
+  .articleTitle {
+    font-size: 2rem;
+  }
+  
+  .articleContent {
+    font-size: 1rem;
+  }
+  
+  .snippetHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-2);
+  }
+  
+  .backToTop {
+    bottom: 1rem;
+    right: 1rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.2rem;
+  }
+}
