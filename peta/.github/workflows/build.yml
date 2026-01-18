@@ -17,9 +17,9 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '16'
+        node-version: '18'
         cache: 'npm'
-        cache-dependency-path: src/package-lock.json
+        cache-dependency-path: peta/package-lock.json
         
     - name: Setup Rust
       uses: actions-rs/toolchain@v1
@@ -31,35 +31,43 @@ jobs:
       run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       
     - name: Install dependencies
-      working-directory: ./src
+      working-directory: ./peta
       run: npm ci
       
     - name: Build WebAssembly module
-      working-directory: ./src
-      run: npm run build:wasm
+      working-directory: ./peta/processors/rst-parser
+      run: wasm-pack build --target web --out-dir ../../../wasm-bindings
       
     - name: Process content
-      working-directory: ./src
-      run: npm run process:content
+      working-directory: ./peta
+      run: node scripts/process-content.js
       
     - name: Render math
-      working-directory: ./src
-      run: npm run render:math
+      working-directory: ./peta
+      run: node scripts/render-math.js
+      
+    - name: Copy data to out directory
+      working-directory: ./peta
+      run: node scripts/copy-data.js
       
     - name: Build site
-      working-directory: ./src
+      working-directory: ./peta
       run: npm run build
+      
+    - name: Export static files
+      working-directory: ./peta
+      run: npm run export
       
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
         name: build-files
-        path: src/out/
+        path: peta/out/
         
     - name: Deploy to GitHub Pages
       if: github.ref == 'refs/heads/main'
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./src/out
-        cname: static-blog.example.com
+        publish_dir: ./peta/out
+        cname: peta.example.com

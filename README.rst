@@ -221,10 +221,80 @@ Deployment
 
 The site is designed for GitHub Pages deployment. The build output in ``peta/out/`` can be deployed to any static hosting service.
 
-GitHub Actions
-~~~~~~~~~~~~~~
+GitHub Pages Deployment
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Automatic Deployment
+-------------------
 
 The project includes a pre-configured GitHub Actions workflow in ``peta/.github/workflows/build.yml`` that automatically builds and deploys the site to GitHub Pages when changes are pushed to the main branch.
+
+To enable automatic deployment:
+
+1. **Enable GitHub Pages** in your repository:
+
+   - Go to your repository on GitHub
+   - Click **Settings** → **Pages**
+   - Under **Build and deployment**, set **Source** to **GitHub Actions**
+
+2. **Configure Custom Domain** (optional):
+
+   - If you want to use a custom domain, edit the ``cname`` field in ``peta/.github/workflows/build.yml``
+   - Or configure it in **Settings** → **Pages** → **Custom domain**
+
+3. **Push Changes**:
+
+   - Any push to the main branch will trigger the build and deployment
+   - The workflow will build the site, process content, render math, and deploy to GitHub Pages
+
+Manual Deployment
+-----------------
+
+To deploy manually without GitHub Actions:
+
+1. **Build the site**::
+
+    cd peta
+    npm run build
+    npm run export
+
+2. **Deploy to GitHub Pages** using gh CLI::
+
+    # Install gh CLI if not already installed
+    # https://cli.github.com/
+    
+    # Deploy the out directory
+    gh-pages --dist=out --branch=gh-pages
+
+3. **Configure GitHub Pages**:
+
+   - Go to **Settings** → **Pages**
+   - Set **Source** to **Deploy from a branch**
+   - Select **gh-pages** branch and **/(root)** folder
+
+Deployment Workflow
+------------------
+
+The deployment process includes:
+
+1. **Content Processing**: RST files are converted to JSON
+2. **Math Rendering**: LaTeX formulas are rendered to SVG
+3. **Static Build**: Next.js builds the static site
+4. **Export**: Static files are exported to ``peta/out/``
+5. **Deployment**: Files are deployed to GitHub Pages
+
+The site will be available at:
+- Default: ``https://<username>.github.io/<repository>``
+- Custom domain: As configured in your settings
+
+Troubleshooting
+---------------
+
+Common issues:
+
+- **404 errors**: Ensure the ``basePath`` in ``next.config.js`` matches your repository name
+- **Math not rendering**: Check that the math cache is properly generated during build
+- **Content not loading**: Verify that the API routes are correctly exported in the static build
 
 Performance
 -----------
