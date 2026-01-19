@@ -89,7 +89,7 @@ export default function BookTableOfContents({ book }: BookTableOfContentsProps) 
 
   return (
     <div className={styles.tableOfContents}>
-      <h3 className={styles.tocTitle}>Table of Contents</h3>
+      <h3 className={styles.tocTitle}>{book.title}</h3>
       <ul className={styles.tocList}>
         {book.sections.map((section) => (
           <li 
