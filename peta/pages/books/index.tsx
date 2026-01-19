@@ -25,11 +25,10 @@ export default function Books() {
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
   const [renderedContent, setRenderedContent] = useState<string>('');
-  const [showTOC, setShowTOC] = useState(false);
-  const [showBackToTop, setShowBackToTop] = useState(false);
-  
-  const router = useRouter();
-
+    const [showTOC, setShowTOC] = useState(false);
+    const [showBackToTop, setShowBackToTop] = useState(false);
+    const [loadedSections, setLoadedSections] = useState<Set<string>>(new Set());
+      const router = useRouter();
   useEffect(() => {
     loadBooksContent();
   }, []);
@@ -70,15 +69,57 @@ export default function Books() {
     }
   }, [selectedTag]);
 
-  // Handle scroll to show/hide back to top button
-  useEffect(() => {
+useEffect(() => {
+    // Handle scroll to show/hide back to top button and load sections incrementally
     const handleScroll = () => {
       setShowBackToTop(window.pageYOffset > 300);
+      
+      // Load sections incrementally as they come into view
+      if (selectedBook && selectedBook.sections) {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                const sectionId = entry.target.id;
+                if (sectionId.startsWith('section-placeholder-')) {
+                  const actualSectionId = sectionId.replace('section-placeholder-', '');
+                  
+                  // Load the section when it comes into view
+                  setLoadedSections(prev => {
+                    const updated = new Set(prev);
+                    updated.add(actualSectionId);
+                    return updated;
+                  });
+                  
+                  // Stop observing this section once loaded
+                  observer.unobserve(entry.target);
+                }
+              }
+            });
+          },
+          {
+            rootMargin: '100px', // Start loading 100px before section is visible
+            threshold: 0.1
+          }
+        );
+
+        // Observe all section placeholders that haven't been loaded yet
+        selectedBook.sections.forEach((section) => {
+          if (!loadedSections.has(section.id)) {
+            const element = document.getElementById(`section-placeholder-${section.id}`);
+            if (element) {
+              observer.observe(element);
+            }
+          }
+        });
+
+        return () => observer.disconnect();
+      }
     };
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [selectedBook, loadedSections]);
 
   const loadBooksContent = async () => {
     try {
@@ -631,25 +672,45 @@ export default function Books() {
                   </section>
                 )}
 
-                {/* Render each section */}
-                {selectedBook.sections && selectedBook.sections.length > 0 && selectedBook.sections.map((section) => (
-                  <section key={section.id} id={`section-${section.id}`} className={styles.bookSection}>
-                    <h2>{section.title}</h2>
-                    {section.content && section.content.map((item, index) => {
-                      if (item.type === 'text') {
-                        const htmlContent = parseRST(item.content);
-                        
-                        return (
-                          <MathRenderer 
-                            key={index} 
-                            content={htmlContent}
-                          />
-                        );
-                      }
-                      return null;
-                    })}
-                  </section>
-                ))}
+                {/* Render each section with lazy loading */}
+                {selectedBook.sections && selectedBook.sections.length > 0 && selectedBook.sections.map((section) => {
+                  const isLoaded = loadedSections.has(section.id);
+                  
+                  
+                  return (
+                    <section 
+                      key={section.id} 
+                      id={!isLoaded ? `section-placeholder-${section.id}` : `section-${section.id}`}
+                      className={`${styles.bookSection} ${!isLoaded ? styles.sectionLoading : ''}`}
+                      style={{
+                        opacity: isLoaded ? 1 : 0,
+                        transform: isLoaded ? 'translateY(0)' : 'translateY(20px)',
+                        transition: 'opacity 0.5s ease, transform 0.5s ease'
+                      }}
+                    >
+                      <h2>{section.title}</h2>
+                      {isLoaded && section.content ? (
+                        section.content.map((item, index) => {
+                          if (item.type === 'text') {
+                            const htmlContent = parseRST(item.content);
+                            
+                            return (
+                              <MathRenderer 
+                                key={index} 
+                                content={htmlContent}
+                              />
+                            );
+                          }
+                          return null;
+                        })
+                      ) : (
+                        <div className={styles.sectionPlaceholder}>
+                          <div className={styles.loadingSpinner}></div>
+                        </div>
+                      )}
+                    </section>
+                  );
+                })}
               </div>
             </article>
           </main>
