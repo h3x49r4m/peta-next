@@ -1,7 +1,7 @@
 :root {
   /* Color palette */
-  --primary-color: #2563eb;
-  --primary-hover: #1d4ed8;
+  --primary-color: #374151;
+  --primary-hover: #1f2937;
   --secondary-color: #64748b;
   --accent-color: #f59e0b;
   --background-color: #ffffff;
@@ -52,8 +52,8 @@
 
 /* Dark theme */
 [data-theme="dark"] {
-  --primary-color: #3b82f6;
-  --primary-hover: #2563eb;
+  --primary-color: #6b7280;
+  --primary-hover: #4b5563;
   --secondary-color: #94a3b8;
   --accent-color: #fbbf24;
   --background-color: #0f172a;

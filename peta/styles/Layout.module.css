@@ -30,7 +30,7 @@
 }
 
 .brandLink {
-  color: var(--text-primary);
+  color: var(--primary-color);
   text-decoration: none;
   transition: all var(--transition-fast);
   font-size: 1.5rem;
@@ -40,20 +40,12 @@
   display: inline-block;
   padding: 4px 8px;
   border-radius: 8px;
-  background: linear-gradient(135deg, var(--primary-color, #0070f3), #0051cc);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  text-shadow: 0 2px 4px rgba(0, 112, 243, 0.1);
 }
 
 .brandLink:hover {
   text-decoration: none;
   transform: translateY(-1px);
-  background: linear-gradient(135deg, var(--primary-hover, #0051cc), #003d99);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--primary-hover);
 }
 
 .navList {
