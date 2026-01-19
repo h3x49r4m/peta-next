@@ -50,6 +50,29 @@ export default function Post({ post }: PostProps) {
             content={`<p>${htmlContent}</p>`}
           />
         );
+      } else if (item.type === 'embedded-snippet') {
+        // Render snippet with proper formatting
+        return (
+          <div key={index} className="embedded-snippet">
+            <h3>{item.title}</h3>
+            {renderContent(item.content)}
+            <style jsx>{`
+              .embedded-snippet {
+                background-color: #f8f9fa;
+                border-left: 4px solid #1a73e8;
+                padding: 1rem 1.5rem;
+                margin: 1.5rem 0;
+                border-radius: 4px;
+              }
+              .embedded-snippet h3 {
+                margin-top: 0;
+                margin-bottom: 1rem;
+                color: #1a73e8;
+                font-size: 1.2rem;
+              }
+            `}</style>
+          </div>
+        );
       }
       return null;
     });

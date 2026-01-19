@@ -99,8 +99,8 @@ class SnippetResolver {
     const resolvedContent = [];
     
     for (const block of content) {
-      if (block.type === 'snippet-ref') {
-        const snippet = snippets.find(s => s.id === block.id);
+      if (block.type === 'snippet-card-ref') {
+        const snippet = snippets.find(s => s.id === block.content);
         if (snippet) {
           resolvedContent.push({
             type: 'embedded-snippet',

@@ -55,9 +55,9 @@ async function processContentType(type, snippets = [], snippetResolver = null, o
     const content = await fs.readFile(file, 'utf8');
     const parsed = await parseRst(content);
     
-    // Process snippet references if this is a post and we have snippet resolver
+    // Process snippet references if this is an article and we have snippet resolver
     const actualType = outputType || type;
-    if (actualType === 'posts' && snippetResolver) {
+    if (actualType === 'articles' && snippetResolver) {
       parsed.content = await snippetResolver.resolveSnippets(parsed.content, snippets);
     }
     

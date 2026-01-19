@@ -16,83 +16,52 @@ export default function TableOfContents({ content, postTitle }: TableOfContentsP
   const [headings, setHeadings] = useState<TOCItem[]>([]);
   const [activeId, setActiveId] = useState<string>('');
   const observerRef = useRef<IntersectionObserver | null>(null);
-  const retriesRef = useRef(0);
   const processedRef = useRef(false);
-  const updateIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (processedRef.current) return;
+    if (!content || processedRef.current) return;
     processedRef.current = true;
     
-    // Function to extract headings from the content string first
+    // Function to extract headings from the content string
     const extractHeadingsFromContent = () => {
-      console.log('Extracting headings from content string...');
-      console.log('Content length:', content.length);
-      console.log('Content preview:', content.substring(0, 500));
-      
       // Create a temporary div to parse the HTML
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = content;
       
       const extractedHeadings: TOCItem[] = [];
       
-      // First, extract h2 and h3 headings from regular content
-      const headingElements = tempDiv.querySelectorAll('h2, h3');
-      console.log(`Found ${headingElements.length} headings (h2 and h3 only) in content string`);
+      // Extract all headings (h1, h2, h3, h4) from regular content
+      const headingElements = tempDiv.querySelectorAll('h1, h2, h3, h4');
       
       headingElements.forEach((heading, index) => {
-        const level = parseInt(heading.tagName.charAt(1));
-        const title = heading.textContent || '';
-        const id = `heading-${index}`;
-        
-        extractedHeadings.push({
-          id,
-          title,
-          level
-        });
-        
-        console.log(`Added heading from content: ${title} (${level}) with id: ${id}`);
+        // Skip headings that are inside snippet cards
+        if (!heading.closest('.snippetCard')) {
+          const level = parseInt(heading.tagName.charAt(1));
+          const title = heading.textContent || '';
+          const id = `heading-${index}`;
+          
+          extractedHeadings.push({
+            id,
+            title,
+            level
+          });
+        }
       });
       
-      // Then, extract snippet cards as sections
+      // Extract embedded snippets as sections
       const snippetCards = tempDiv.querySelectorAll('.snippetCard');
-      console.log(`Found ${snippetCards.length} snippet cards`);
       
       snippetCards.forEach((card, index) => {
         const headerElement = card.querySelector('.snippetHeader h3');
         if (headerElement) {
           const title = headerElement.textContent || '';
-          const id = `snippet-${index}`;
-          
-          // Treat snippets as h2 level sections
-          extractedHeadings.push({
-            id,
-            title: title.includes('Loading') ? `Snippet: ${card.id.replace('snippet-placeholder-', '')}` : title,
-            level: 2
-          });
-          
-          console.log(`Added snippet as section: ${title} with id: ${id}`);
-        }
-      });
-      
-      // Also extract snippet references (if any)
-      const snippetRefs = tempDiv.querySelectorAll('.snippetRef');
-      console.log(`Found ${snippetRefs.length} snippet references`);
-      
-      snippetRefs.forEach((ref, index) => {
-        const text = ref.textContent || '';
-        const match = text.match(/Snippet not found: (.+)/);
-        if (match) {
-          const title = `Snippet: ${match[1]}`;
-          const id = `snippet-ref-${index}`;
+          const cardId = card.id || `snippet-${index}`;
           
           extractedHeadings.push({
-            id,
-            title,
+            id: cardId,
+            title: title.startsWith('Snippet:') ? title : `Snippet: ${title}`,
             level: 2
           });
-          
-          console.log(`Added snippet reference as section: ${title} with id: ${id}`);
         }
       });
       
@@ -101,129 +70,49 @@ export default function TableOfContents({ content, postTitle }: TableOfContentsP
     
     // Function to add IDs to headings in the DOM
     const addIdsToDOMHeadings = (extractedHeadings: TOCItem[]) => {
-      console.log('Adding IDs to DOM headings...');
-      
       // Find all headings in the article content
       const articleContent = document.querySelector('.articleContent');
       if (!articleContent) {
-        // Retry a few times if content is not ready
-        if (retriesRef.current < 10) {
-          retriesRef.current++;
-          console.log(`Retry ${retriesRef.current}: Article content not found, retrying...`);
-          setTimeout(() => addIdsToDOMHeadings(extractedHeadings), 300);
-          return;
-        }
-        console.log('Article content not found after retries');
+        // Retry once if content is not ready
+        setTimeout(() => addIdsToDOMHeadings(extractedHeadings), 100);
         return;
       }
       
-      // Add IDs to h2 and h3 headings
-      const headingElements = articleContent.querySelectorAll('h2, h3');
-      console.log(`Found ${headingElements.length} headings (h2 and h3 only) in DOM`);
+      // Add IDs to all headings (h1, h2, h3, h4)
+      const headingElements = articleContent.querySelectorAll('h1, h2, h3, h4');
       
-      let headingIndex = 0;
       headingElements.forEach((heading) => {
-        if (headingIndex < extractedHeadings.length) {
-          const item = extractedHeadings[headingIndex];
-          // Only add IDs to regular headings, not snippet headers
-          if (!heading.closest('.snippetHeader')) {
-            const id = item.id;
-            heading.id = id;
-            console.log(`Added ID ${id} to heading: ${heading.textContent}`);
-            headingIndex++;
+        // Only add IDs to regular headings, not snippet headers
+        if (!heading.closest('.snippetHeader') && !heading.id) {
+          // Find the corresponding heading in our extracted list
+          const headingText = heading.textContent || '';
+          const matchingItem = extractedHeadings.find(h => 
+            h.title === headingText && h.id.startsWith('heading-')
+          );
+          
+          if (matchingItem) {
+            heading.id = matchingItem.id;
           }
-        }
-      });
-      
-      // Add IDs to snippet cards - use the snippet ID from the card itself
-      const snippetCards = articleContent.querySelectorAll('.snippetCard');
-      console.log(`Found ${snippetCards.length} snippet cards in DOM`);
-      
-      snippetCards.forEach((card) => {
-        // Use the card's existing ID if it has one
-        if (card.id) {
-          console.log(`Snippet card already has ID: ${card.id}`);
-        }
-      });
-      
-      // Add IDs to snippet references
-      const snippetRefs = articleContent.querySelectorAll('.snippetRef');
-      console.log(`Found ${snippetRefs.length} snippet references in DOM`);
-      
-      let refIndex = 0;
-      snippetRefs.forEach((ref) => {
-        // Find the corresponding snippet reference in our extracted list
-        const refHeadings = extractedHeadings.filter(h => h.id.startsWith('snippet-ref-'));
-        if (refIndex < refHeadings.length) {
-          const id = refHeadings[refIndex].id;
-          ref.id = id;
-          console.log(`Added ID ${id} to snippet reference`);
-          refIndex++;
         }
       });
     };
     
-    // Function to update snippet titles
-    const updateSnippetTitles = () => {
-      const articleContent = document.querySelector('.articleContent');
-      if (!articleContent) return;
-      
-      // Update snippet titles in TOC
-      setHeadings(prevHeadings => {
-        const updatedHeadings = [...prevHeadings];
-        
-        // Check each snippet card for title updates
-        updatedHeadings.forEach((heading, index) => {
-          if (heading.id.startsWith('snippet-')) {
-            const card = document.getElementById(heading.id);
-            if (card) {
-              const headerElement = card.querySelector('.snippetHeader h3');
-              if (headerElement) {
-                const newTitle = headerElement.textContent || '';
-                if (newTitle !== heading.title && !newTitle.includes('Loading')) {
-                  console.log(`Updating snippet title from "${heading.title}" to "${newTitle}"`);
-                  updatedHeadings[index] = { ...heading, title: newTitle };
-                }
-              }
-            }
-          }
-        });
-        
-        return updatedHeadings;
-      });
-    };
-    
-    // First extract from content string
+    // Extract headings from content
     const extractedHeadings = extractHeadingsFromContent();
     
     if (extractedHeadings.length > 0) {
-      // Then add IDs to DOM
-      addIdsToDOMHeadings(extractedHeadings);
-      // Set the headings state
+      // Set the headings state immediately
       setHeadings(extractedHeadings);
       
-      // Set up interval to update snippet titles
-      updateIntervalRef.current = setInterval(updateSnippetTitles, 500);
-      
-      // Clear interval after 5 seconds
-      setTimeout(() => {
-        if (updateIntervalRef.current) {
-          clearInterval(updateIntervalRef.current);
-          updateIntervalRef.current = null;
-        }
-      }, 5000);
+      // Add IDs to DOM after a short delay to ensure content is rendered
+      setTimeout(() => addIdsToDOMHeadings(extractedHeadings), 50);
     } else {
-      // No headings found in content string
+      // No headings found
       setHeadings([]);
     }
     
     return () => {
-      retriesRef.current = 0;
       processedRef.current = false;
-      if (updateIntervalRef.current) {
-        clearInterval(updateIntervalRef.current);
-        updateIntervalRef.current = null;
-      }
     };
   }, [content]);
 
@@ -288,7 +177,7 @@ export default function TableOfContents({ content, postTitle }: TableOfContentsP
       console.log('Available IDs:', Array.from(allElementsWithIds).map(el => el.id));
       
       // Try to find the element by text content if ID doesn't work
-      const heading = Array.from(document.querySelectorAll('h2, h3')).find(
+      const heading = Array.from(document.querySelectorAll('h1, h2, h3, h4')).find(
         h => h.textContent === headings.find(hh => hh.id === id)?.title
       );
       

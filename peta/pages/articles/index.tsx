@@ -111,6 +111,29 @@ export default function Articles() {
       
       setPosts(sortedPosts);
       setTags(Array.isArray(tagsData) ? tagsData : []);
+      
+      // Check if there's a post parameter in the URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const postSlug = urlParams.get('post');
+      if (postSlug && sortedPosts.length > 0) {
+        // Find the post by slug (title converted to slug)
+        const post = sortedPosts.find(p => {
+          const titleSlug = p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+          return titleSlug === postSlug;
+        });
+        
+        if (post) {
+          console.log('Found post from URL parameter:', post);
+          setSelectedPost(post);
+          setTimeout(() => setShowTOC(true), 500);
+        }
+      }
+      
+      // Also check for tag parameter
+      const tagParam = urlParams.get('tag');
+      if (tagParam) {
+        setSelectedTag(tagParam);
+      }
     } catch (error) {
       console.error('Error loading articles content:', error);
     } finally {
@@ -154,7 +177,54 @@ export default function Articles() {
     });
   };
 
-  const parseRST = (text: string, articleTitle: string): string => {
+  const parseNestedList = (lines: string[], startIndex: number): { html: string; nextIndex: number } => {
+  const items = [];
+  let i = startIndex;
+  let currentIndent = -1;
+  
+  while (i < lines.length && lines[i].trim().match(/^(\d+\.|\*|\-)\s/)) {
+    const line = lines[i];
+    const indent = line.search(/\S/);
+    const isNumbered = line.trim().match(/^\d+\./);
+    
+    // Initialize current indent on first item
+    if (currentIndent === -1) {
+      currentIndent = indent;
+    }
+    
+    // Extract the item text
+    const itemText = line.replace(/^(\s*(\d+\.|\*|\-)\s+)/, '').trim();
+    
+    // Check if this is a nested item (more indented than current level)
+    if (indent > currentIndent) {
+      // This is a nested list - recursively parse it
+      const nestedResult = parseNestedList(lines, i);
+      // Add the nested list to the last item
+      const lastItem = items[items.length - 1];
+      // Determine the nested list type from the first nested line
+      const nestedLine = lines[i];
+      const nestedIsNumbered = nestedLine.trim().match(/^\d+\./);
+      const nestedTag = nestedIsNumbered ? 'ol' : 'ul';
+      items[items.length - 1] = lastItem.replace(`</li>`, `<${nestedTag}>${nestedResult.html}</${nestedTag}></li>`);
+      i = nestedResult.nextIndex;
+      continue;
+    } else if (indent < currentIndent) {
+      // End of this list level
+      break;
+    }
+    
+    // Regular list item
+    items.push(`<li>${itemText}</li>`);
+    i++;
+  }
+  
+  return {
+    html: items.join(''),
+    nextIndex: i
+  };
+};
+
+const parseRST = (text: string, articleTitle: string): string => {
     // Convert RST to HTML while preserving math formulas
     const lines = text.split('\n');
     const output: string[] = [];
@@ -195,34 +265,15 @@ export default function Articles() {
         }
       }
       
-      // Handle lists - preserve indentation!
+      // Handle lists - preserve indentation and create proper nested structures!
       if (line.trim().match(/^(\d+\.|\*|\-)\s/)) {
         const isNumbered = line.trim().match(/^\d+\./);
         const tag = isNumbered ? 'ol' : 'ul';
-        const items = [];
         
-        // Collect all list items, preserving their original indentation
-        while (i < lines.length && lines[i].trim().match(/^(\d+\.|\*|\-)\s/)) {
-          const currentLine = lines[i];
-          const indent = currentLine.search(/\S/); // Count leading spaces
-          
-          // Preserve the original line with indentation
-          let itemText = currentLine.replace(/^(\s*(\d+\.|\*|\-)\s+)/, '').trim();
-          
-          // Check if this is a nested item (starts with spaces)
-          const isNested = indent > 0;
-          
-          if (isNested) {
-            // For nested items, create a sub-list
-            items.push(`<li class="nested">${itemText}</li>`);
-          } else {
-            items.push(`<li>${itemText}</li>`);
-          }
-          
-          i++;
-        }
-        
-        output.push(`<${tag}>${items.join('')}</${tag}>`);
+        // Parse the entire list with nested structure
+        const listResult = parseNestedList(lines, i);
+        output.push(`<${tag}>${listResult.html}</${tag}>`);
+        i = listResult.nextIndex;
         continue;
       }
       
@@ -251,7 +302,11 @@ export default function Articles() {
               return match; // Keep as is, will be handled by display math
             }
             return match;
-          });
+          })
+          // Process RST formatting
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold text
+          .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italic text
+          .replace(/`(.*?)`/g, '<code>$1</code>'); // Inline code
         
         output.push(`<p>${processedLine}</p>`);
       }
@@ -259,7 +314,7 @@ export default function Articles() {
       i++;
     }
     
-    // Post-process to combine broken math formulas
+    // Post-process to combine broken math formulas and apply RST formatting
     let result = output.join('\n');
     
     // Fix broken display math with missing closing
@@ -267,6 +322,12 @@ export default function Articles() {
       const formula = match.replace(/\$\$/g, '');
       return `$$${formula}$$`;
     });
+    
+    // Apply RST formatting to the entire result
+    result = result
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold text
+      .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italic text
+      .replace(/`(.*?)`/g, '<code>$1</code>'); // Inline code
     
     console.log('parseRST output:', result);
     
@@ -282,8 +343,31 @@ export default function Articles() {
       if (item.type === 'text') {
         const htmlContent = parseRST(item.content, articleTitle);
         elements.push(htmlContent);
+      } else if (item.type === 'embedded-snippet') {
+        // Render the embedded snippet directly
+        const snippetTitle = item.title || item.id;
+        const formattedTitle = snippetTitle.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+        
+        let snippetContent = `<div class="${styles.snippetCard}">
+          <div class="${styles.snippetHeader}">
+            <h3>${formattedTitle}</h3>
+            <span class="${styles.snippetType}">Snippet</span>
+          </div>
+          <div class="${styles.snippetContent}">`;
+        
+        // Render the snippet content
+        if (item.content && Array.isArray(item.content)) {
+          item.content.forEach((c: any) => {
+            if (c.type === 'text') {
+              snippetContent += parseRST(c.content, articleTitle);
+            }
+          });
+        }
+        
+        snippetContent += `</div></div>`;
+        elements.push(snippetContent);
       } else if (item.type === 'snippet-card-ref') {
-        // Add a placeholder for the snippet with a proper title
+        // Fallback for old format - Add a placeholder for the snippet with a proper title
         const snippetId = item.content;
         const snippetTitle = snippetId.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
         
@@ -388,7 +472,7 @@ export default function Articles() {
                 <div class="${styles.snippetContent}">
                   <em>Error loading snippet: ${snippetId}</em>
                 </div>
-              `;
+                `;
             }
           }, 100);
         }
@@ -403,8 +487,8 @@ export default function Articles() {
       renderContent(selectedPost.content, selectedPost.title).then(htmlContent => {
         setRenderedContent(htmlContent);
         console.log('Content rendered, showing TOC');
-        // Show TOC after content is set
-        setTimeout(() => setShowTOC(true), 500);
+        // Show TOC immediately after content is set
+        setShowTOC(true);
       });
     }
   }, [selectedPost]);
