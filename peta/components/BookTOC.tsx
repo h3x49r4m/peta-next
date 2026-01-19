@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import styles from '../styles/TableOfContents.module.css';
+import styles from '../styles/BookTOC.module.css';
 
 interface BookSection {
   id: string;
@@ -7,7 +7,7 @@ interface BookSection {
   content: any[];
 }
 
-interface BookTableOfContentsProps {
+interface BookTOCProps {
   book: {
     id: string;
     title: string;
@@ -18,12 +18,11 @@ interface BookTableOfContentsProps {
     coverImage?: string;
     sections: BookSection[];
   };
-  onToggleCollapse?: (collapsed: boolean) => void;
 }
 
-export default function BookTableOfContents({ book, onToggleCollapse }: BookTableOfContentsProps) {
+export default function BookTOC({ book }: BookTOCProps) {
   const [activeId, setActiveId] = useState<string>('');
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
@@ -89,42 +88,24 @@ export default function BookTableOfContents({ book, onToggleCollapse }: BookTabl
     }
   };
 
-  const toggleCollapsed = () => {
-    const newCollapsed = !isCollapsed;
-    setIsCollapsed(newCollapsed);
-    if (onToggleCollapse) {
-      onToggleCollapse(newCollapsed);
-    }
-  };
-
   return (
-    <div className={`${styles.tableOfContents} ${isCollapsed ? styles.collapsed : ''}`}>
-      {isCollapsed ? (
-        <button 
-          className={styles.tocIcon}
-          onClick={toggleCollapsed}
-          aria-label="Show TOC"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="3" y1="6" x2="21" y2="6"></line>
-            <line x1="3" y1="12" x2="21" y2="12"></line>
-            <line x1="3" y1="18" x2="21" y2="18"></line>
-          </svg>
-        </button>
-      ) : (
-        <>
+    <div className={`${styles.bookTOC} ${isExpanded ? styles.expanded : ''}`}>
+      <button 
+        className={styles.tocIcon}
+        onClick={() => setIsExpanded(!isExpanded)}
+        aria-label={isExpanded ? 'Hide TOC' : 'Show TOC'}
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+      
+      {isExpanded && (
+        <div className={styles.tocPanel}>
           <div className={styles.tocHeader}>
             <h3 className={styles.tocTitle}>{book.title}</h3>
-            <button 
-              className={styles.closeButton}
-              onClick={toggleCollapsed}
-              aria-label="Hide TOC"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
           </div>
           <ul className={styles.tocList}>
             {book.sections.map((section) => (
@@ -146,7 +127,7 @@ export default function BookTableOfContents({ book, onToggleCollapse }: BookTabl
               </li>
             ))}
           </ul>
-        </>
+        </div>
       )}
     </div>
   );

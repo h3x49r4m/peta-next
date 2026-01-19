@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import TagFilter from '../../components/TagFilter';
 import BookGrid from '../../components/BookGrid';
-import BookTableOfContents from '../../components/BookTableOfContents';
-import styles from '../../styles/Articles.module.css'; // Reuse Articles styles
+import BookTOC from '../../components/BookTOC';
+import styles from '../../styles/Books.module.css'; // Use Books-specific styles
 import MathRenderer from '../../components/MathRenderer';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -27,6 +27,7 @@ export default function Books() {
   const [renderedContent, setRenderedContent] = useState<string>('');
   const [showTOC, setShowTOC] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
+  
   const router = useRouter();
 
   useEffect(() => {
@@ -573,7 +574,9 @@ export default function Books() {
         <div className={styles.contentSection}>
           <aside className={styles.tocAside}>
             {showTOC && selectedBook && (
-              <BookTableOfContents book={selectedBook} />
+              <BookTOC 
+                book={selectedBook} 
+              />
             )}
           </aside>
 
@@ -629,7 +632,7 @@ export default function Books() {
                 )}
 
                 {/* Render each section */}
-                {selectedBook.sections && selectedBook.sections.map((section) => (
+                {selectedBook.sections && selectedBook.sections.length > 0 && selectedBook.sections.map((section) => (
                   <section key={section.id} id={`section-${section.id}`} className={styles.bookSection}>
                     <h2>{section.title}</h2>
                     {section.content && section.content.map((item, index) => {
