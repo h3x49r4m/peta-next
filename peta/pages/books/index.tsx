@@ -30,6 +30,9 @@ export default function Books() {
     const [loadedSections, setLoadedSections] = useState<Set<string>>(new Set());
       const router = useRouter();
   useEffect(() => {
+    // Always load books content on initial page load
+    loadBooksContent();
+    
     // Check for book parameter in URL on initial load
     const urlParams = new URLSearchParams(window.location.search);
     const bookId = urlParams.get('book');
