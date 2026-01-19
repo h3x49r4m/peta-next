@@ -643,6 +643,8 @@ export default function TableOfContents({ content, postTitle }: TableOfContentsP
               e.preventDefault();
               e.stopPropagation();
               toggleSnippet(item.id);
+              // Also scroll to snippet position
+              scrollToHeading(item.id);
             }}
           >
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
