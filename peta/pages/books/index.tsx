@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import TagFilter from '../../components/TagFilter';
 import BookGrid from '../../components/BookGrid';
 import BookTOC from '../../components/BookTOC';
+import CodeBlock from '../../components/CodeBlock';
 import styles from '../../styles/Books.module.css'; // Use Books-specific styles
 import MathRenderer from '../../components/MathRenderer';
 import Link from 'next/link';
@@ -696,6 +697,14 @@ useEffect(() => {
                             content={htmlContent}
                           />
                         );
+                      } else if (item.type === 'code-block') {
+                        return (
+                          <CodeBlock 
+                            key={index} 
+                            code={item.content}
+                            language={item.language || 'text'}
+                          />
+                        );
                       }
                       return null;
                     })}
@@ -728,6 +737,14 @@ useEffect(() => {
                               <MathRenderer 
                                 key={index} 
                                 content={htmlContent}
+                              />
+                            );
+                          } else if (item.type === 'code-block') {
+                            return (
+                              <CodeBlock 
+                                key={index} 
+                                code={item.content}
+                                language={item.language || 'text'}
                               />
                             );
                           }

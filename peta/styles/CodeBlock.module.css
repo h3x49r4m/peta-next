@@ -1,0 +1,218 @@
+/* Code block styles with Prism.js theme */
+
+.codeBlock {
+  margin: 1.5rem 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background-color: #1e1e1e;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.pre {
+  margin: 0 !important;
+  padding: 0 !important;
+  background-color: #1e1e1e !important;
+  overflow-x: auto;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'Source Code Pro', monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Override Prism.js default styles */
+.codeBlock :global(pre[class*="language-"]) {
+  margin: 0 !important;
+  padding: 0 !important;
+  background-color: #1e1e1e !important;
+  color: #d4d4d4;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'Source Code Pro', monospace;
+}
+
+.codeBlock :global(code[class*="language-"]) {
+  padding: 0;
+  background-color: transparent;
+  color: inherit;
+  font-size: inherit;
+  font-family: inherit;
+  line-height: inherit;
+  text-shadow: none;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  display: block;
+  padding: 1rem 0;
+}
+
+.line {
+  display: flex;
+  min-height: 1.5em;
+  position: relative;
+}
+
+.lineNumber {
+  flex: 0 0 3.5rem;
+  text-align: right;
+  padding-right: 1rem;
+  color: #858585;
+  user-select: none;
+  display: inline-block;
+}
+
+.lineContent {
+  flex: 1;
+  white-space: pre;
+  min-width: 0;
+  display: inline-block;
+  line-height: 1.5;
+}
+
+.empty-line {
+  display: inline-block;
+  height: 1.5em;
+}
+
+/* Dark theme syntax highlighting */
+.codeBlock :global(.token.comment),
+.codeBlock :global(.token.prolog),
+.codeBlock :global(.token.doctype),
+.codeBlock :global(.token.cdata) {
+  color: #6a9955 !important;
+  font-style: italic;
+}
+
+.codeBlock :global(.token.punctuation) {
+  color: #d4d4d4 !important;
+}
+
+.codeBlock :global(.token.property),
+.codeBlock :global(.token.tag),
+.codeBlock :global(.token.boolean),
+.codeBlock :global(.token.number),
+.codeBlock :global(.token.constant),
+.codeBlock :global(.token.symbol),
+.codeBlock :global(.token.deleted) {
+  color: #b5cea8 !important;
+}
+
+.codeBlock :global(.token.selector),
+.codeBlock :global(.token.attr-name),
+.codeBlock :global(.token.string),
+.codeBlock :global(.token.char),
+.codeBlock :global(.token.builtin),
+.codeBlock :global(.token.inserted) {
+  color: #ce9178 !important;
+}
+
+.codeBlock :global(.token.operator),
+.codeBlock :global(.token.entity),
+.codeBlock :global(.token.url),
+.language-css :global(.token.string),
+.style :global(.token.string) {
+  color: #d4d4d4 !important;
+}
+
+.codeBlock :global(.token.atrule),
+.codeBlock :global(.token.attr-value),
+.codeBlock :global(.token.keyword) {
+  color: #c586c0 !important;
+}
+
+.codeBlock :global(.token.function),
+.codeBlock :global(.token.class-name) {
+  color: #dcdcaa !important;
+}
+
+.codeBlock :global(.token.regex),
+.codeBlock :global(.token.important),
+.codeBlock :global(.token.variable) {
+  color: #d16969 !important;
+}
+
+/* Language-specific overrides */
+.codeBlock :global(.language-python .token.keyword) {
+  color: #569cd6 !important;
+}
+
+.codeBlock :global(.language-python .token.string) {
+  color: #ce9178 !important;
+}
+
+.codeBlock :global(.language-python .token.function) {
+  color: #dcdcaa !important;
+}
+
+.codeBlock :global(.language-python .token.number) {
+  color: #b5cea8 !important;
+}
+
+.codeBlock :global(.language-javascript .token.keyword),
+.codeBlock :global(.language-typescript .token.keyword),
+.codeBlock :global(.language-jsx .token.keyword),
+.codeBlock :global(.language-tsx .token.keyword) {
+  color: #569cd6 !important;
+}
+
+.codeBlock :global(.language-javascript .token.function),
+.codeBlock :global(.language-typescript .token.function),
+.codeBlock :global(.language-jsx .token.function),
+.codeBlock :global(.language-tsx .token.function) {
+  color: #dcdcaa !important;
+}
+
+.codeBlock :global(.language-bash .token.builtin) {
+  color: #569cd6 !important;
+}
+
+.codeBlock :global(.language-json .token.property) {
+  color: #9cdcfe !important;
+}
+
+.codeBlock :global(.language-json .token.string) {
+  color: #ce9178 !important;
+}
+
+.codeBlock :global(.language-css .token.selector) {
+  color: #d7ba7d !important;
+}
+
+.codeBlock :global(.language-css .token.property) {
+  color: #9cdcfe !important;
+}
+
+.codeBlock :global(.language-rust .token.keyword) {
+  color: #c586c0 !important;
+}
+
+.codeBlock :global(.language-rust .token.function) {
+  color: #dcdcaa !important;
+}
+
+.codeBlock :global(.language-go .token.keyword) {
+  color: #569cd6 !important;
+}
+
+.codeBlock :global(.language-go .token.function) {
+  color: #dcdcaa !important;
+}
+
+/* Scrollbar styling */
+.codeBlock :global(pre::-webkit-scrollbar) {
+  height: 8px;
+}
+
+.codeBlock :global(pre::-webkit-scrollbar-track) {
+  background: #1e1e1e;
+}
+
+.codeBlock :global(pre::-webkit-scrollbar-thumb) {
+  background: #424242;
+  border-radius: 4px;
+}
+
+.codeBlock :global(pre::-webkit-scrollbar-thumb:hover) {
+  background: #4f4f4f;
+}
