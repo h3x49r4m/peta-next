@@ -31,6 +31,9 @@ async function processContent() {
   // Process projects
   await processContentType('projects', snippets);
   
+  // Process books with special handling for folder structure
+  await processBooks();
+  
   // Generate tags index
   await generateTagsIndex();
   
@@ -96,7 +99,7 @@ async function generateTagsIndex() {
   const tags = new Map();
   
   // Process all content types
-  for (const type of ['posts', 'snippets', 'projects']) {
+  for (const type of ['posts', 'snippets', 'projects', 'books']) {
     const indexPath = path.join(OUTPUT_DIR, `${type}-index.json`);
     
     if (await fs.pathExists(indexPath)) {
@@ -136,7 +139,7 @@ async function generateSearchIndex() {
   const documents = [];
   
   // Process all content types
-  for (const type of ['posts', 'snippets', 'projects']) {
+  for (const type of ['posts', 'snippets', 'projects', 'books']) {
     const indexPath = path.join(OUTPUT_DIR, `${type}-index.json`);
     
     if (await fs.pathExists(indexPath)) {
@@ -173,6 +176,73 @@ async function parseRst(content) {
     console.error('Error parsing RST:', error);
     throw error;
   }
+}
+
+async function processBooks() {
+  console.log('Processing books...');
+  
+  const booksDir = path.join(CONTENT_DIR, 'books');
+  console.log('Looking in:', booksDir);
+  
+  if (!(await fs.pathExists(booksDir))) {
+    console.log('Books directory not found, skipping...');
+    return;
+  }
+  
+  const bookFolders = await fs.readdir(booksDir);
+  const items = [];
+  
+  for (const folder of bookFolders) {
+    const folderPath = path.join(booksDir, folder);
+    const stat = await fs.stat(folderPath);
+    
+    if (stat.isDirectory()) {
+      const indexPath = path.join(folderPath, 'index.rst');
+      
+      if (await fs.pathExists(indexPath)) {
+        const content = await fs.readFile(indexPath, 'utf8');
+        const parsed = await parseRst(content);
+        
+        // Read section files
+        const sectionFiles = glob.sync(`${folderPath}/*.rst`);
+        const sections = [];
+        
+        for (const sectionFile of sectionFiles) {
+          if (!sectionFile.endsWith('index.rst')) {
+            const sectionContent = await fs.readFile(sectionFile, 'utf8');
+            const sectionParsed = await parseRst(sectionContent);
+            const sectionName = path.basename(sectionFile, '.rst');
+            sections.push({
+              id: sectionName,
+              title: sectionParsed.frontmatter.title || sectionName,
+              content: sectionParsed.content
+            });
+          }
+        }
+        
+        // Create a single item with sections
+        const bookItem = {
+          frontmatter: parsed.frontmatter,
+          content: parsed.content,
+          snippet_refs: parsed.snippet_refs || [],
+          sections: sections
+        };
+        
+        items.push(bookItem);
+        
+        console.log(`Processed ${folder}/index.rst`);
+      }
+    }
+  }
+  
+  // Create index file for books
+  await fs.writeJson(
+    path.join(OUTPUT_DIR, 'books-index.json'),
+    { items, total: items.length },
+    { spaces: 2 }
+  );
+  
+  console.log(`Created books index with ${items.length} items`);
 }
 
 // Run the processor

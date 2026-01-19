@@ -19,6 +19,11 @@ export default function Layout({ children }: LayoutProps) {
           
           <ul className={styles.navList}>
             <li className={styles.navItem}>
+              <Link href="/books" className={styles.navLink}>
+                Books
+              </Link>
+            </li>
+            <li className={styles.navItem}>
               <Link href="/articles" className={styles.navLink}>
                 Articles
               </Link>
