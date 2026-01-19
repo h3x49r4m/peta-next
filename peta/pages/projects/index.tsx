@@ -56,6 +56,18 @@ export default function Projects() {
   }, [router.asPath]);
 
   useEffect(() => {
+    // Check for project query parameter
+    const projectId = router.query.project as string;
+    if (projectId && projects.length > 0) {
+      const project = projects.find(p => p.id === projectId);
+      if (project) {
+        setSelectedProject(project);
+        setIsModalOpen(true);
+      }
+    }
+  }, [router.query.project, projects]);
+
+  useEffect(() => {
     // When a tag is selected, update URL
     if (selectedTag) {
       // Update URL to include tag

@@ -4,6 +4,7 @@ import path from 'path';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import MathRenderer from '../../components/MathRenderer';
+import { useEffect } from 'react';
 
 interface ProjectProps {
   project: any;
@@ -11,6 +12,18 @@ interface ProjectProps {
 
 export default function Project({ project }: ProjectProps) {
   const router = useRouter();
+
+  useEffect(() => {
+    // Redirect to /projects page with project parameter
+    if (!router.isFallback && project) {
+      const title = project.frontmatter?.title || 'untitled';
+      const slug = title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+      router.replace(`/projects?project=${slug}`);
+    }
+  }, [router.isFallback, project, router]);
 
   if (router.isFallback) {
     return <div>Loading...</div>;

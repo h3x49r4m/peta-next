@@ -4,6 +4,7 @@ import path from 'path';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import MathRenderer from '../../components/MathRenderer';
+import { useEffect } from 'react';
 
 interface PostProps {
   post: any;
@@ -11,6 +12,18 @@ interface PostProps {
 
 export default function Post({ post }: PostProps) {
   const router = useRouter();
+
+  useEffect(() => {
+    // Redirect to /articles page with post parameter
+    if (!router.isFallback && post) {
+      const title = post.frontmatter?.title || 'untitled';
+      const slug = title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+      router.replace(`/articles?post=${slug}`);
+    }
+  }, [router.isFallback, post, router]);
 
   if (router.isFallback) {
     return <div>Loading...</div>;

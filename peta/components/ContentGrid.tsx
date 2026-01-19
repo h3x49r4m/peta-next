@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { useRouter } from 'next/router';
 import styles from '../styles/ContentGrid.module.css';
 
 interface ContentItem {
@@ -8,6 +9,7 @@ interface ContentItem {
   type: string;
   tags: string[];
   date: string;
+  content?: any[];
 }
 
 interface ContentGridProps {
@@ -15,6 +17,7 @@ interface ContentGridProps {
 }
 
 export default function ContentGrid({ items }: ContentGridProps) {
+  const router = useRouter();
   // Ensure items is an array
   const itemsArray = Array.isArray(items) ? items : [];
   
@@ -39,22 +42,45 @@ export default function ContentGrid({ items }: ContentGridProps) {
     }
   };
 
+  const handleSnippetClick = (item: ContentItem) => {
+    // Navigate to snippets page with the snippet selected
+    router.push({
+      pathname: '/snippets',
+      query: { snippet: item.id }
+    });
+  };
+
   return (
     <div className={styles.grid}>
       {itemsArray.map((item) => (
-        <article key={item.id} className={styles.card}>
+        <article 
+          key={item.id} 
+          className={styles.card}
+          onClick={() => item.type === 'snippet' ? handleSnippetClick(item) : undefined}
+          style={{ cursor: item.type === 'snippet' ? 'pointer' : 'default' }}
+        >
           <div className={styles.cardContent}>
             <div className={styles.cardHeader}>
-              <span className={styles.contentType}>{item.type}</span>
+              <span className={styles.contentType}>{item.type.charAt(0).toUpperCase() + item.type.slice(1)}</span>
               <time className={styles.date} dateTime={item.date}>
                 {formatDate(item.date)}
               </time>
             </div>
             
             <h3 className={styles.title}>
-              <Link href={`/${item.type}s/${item.id}`} className={styles.titleLink}>
-                {item.title}
-              </Link>
+              {item.type === 'article' ? (
+                <Link href={`/articles?post=${item.id}`} className={styles.titleLink}>
+                  {item.title}
+                </Link>
+              ) : item.type === 'snippet' ? (
+                <span className={styles.titleLink}>
+                  {item.title}
+                </span>
+              ) : (
+                <Link href={`/${item.type}s/${item.id}`} className={styles.titleLink}>
+                  {item.title}
+                </Link>
+              )}
             </h3>
             
             {item.tags && item.tags.length > 0 && (

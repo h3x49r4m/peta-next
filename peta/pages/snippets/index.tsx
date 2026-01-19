@@ -28,6 +28,18 @@ export default function Snippets() {
   }, []);
 
   useEffect(() => {
+    // Check for snippet query parameter
+    const snippetId = router.query.snippet as string;
+    if (snippetId && snippets.length > 0) {
+      const snippet = snippets.find(s => s.id === snippetId);
+      if (snippet) {
+        setSelectedSnippet(snippet);
+        setIsModalOpen(true);
+      }
+    }
+  }, [router.query.snippet, snippets]);
+
+  useEffect(() => {
     // Reset selected snippet when the route changes (e.g., when clicking the Snippets link)
     const handleRouteChange = (url: string) => {
       // If navigating to /snippets without query params, clear selections

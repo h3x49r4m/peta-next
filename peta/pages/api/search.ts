@@ -48,7 +48,7 @@ async function searchWithoutIndex(query: string, dataDir: string) {
         results.push({
           id: slug,
           title: item.frontmatter.title,
-          type: 'post',
+          type: 'article',
           tags: item.frontmatter.tags,
           date: item.frontmatter.date
         });
