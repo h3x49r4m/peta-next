@@ -15,6 +15,7 @@ const templates = {
 title: "{{title}}"
 date: {{date}}
 tags: []
+author: "Anonymous"
 ---
 
 {{title}}
