@@ -1,7 +1,14 @@
-.toc {
+.tableOfContents {
   background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
   padding: 1rem;
-  border: 1px solid #e5e5e5;
+  position: sticky;
+  top: 2rem;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  font-size: 0.875rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .tocTitle {
