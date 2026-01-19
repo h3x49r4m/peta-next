@@ -31,10 +31,10 @@
 }
 
 .tocLink {
-  color: #666;
+  color: var(--text-primary);
   text-decoration: none;
   display: block;
-  padding: 0.25rem 0;
+  padding: 0.2rem 0.4rem;
   transition: color 0.2s ease;
 }
 
@@ -95,7 +95,7 @@
   color: #333;
 }
 
-.active {
-  color: #000;
+.tocLink.active {
+  color: var(--primary-color);
   font-weight: 600;
 }
