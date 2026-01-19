@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import SearchBar from '../components/SearchBar';
 import ContentGrid from '../components/ContentGrid';
 import styles from '../styles/Home.module.css';
@@ -18,6 +19,7 @@ interface TagData {
 }
 
 export default function Home() {
+  const router = useRouter();
   const [searchResults, setSearchResults] = useState<ContentItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -29,6 +31,23 @@ export default function Home() {
   useEffect(() => {
     loadTags();
   }, []);
+
+  // Reset search state when navigating to the home page
+  useEffect(() => {
+    const handleRouteChange = (url: string) => {
+      if (url === '/') {
+        setSearchQuery('');
+        setSearchResults([]);
+        setIsSearching(false);
+      }
+    };
+
+    router.events.on('routeChangeComplete', handleRouteChange);
+    
+    return () => {
+      router.events.off('routeChangeComplete', handleRouteChange);
+    };
+  }, [router.events]);
 
   const loadTags = async () => {
     try {
