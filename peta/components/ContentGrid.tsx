@@ -76,6 +76,10 @@ export default function ContentGrid({ items }: ContentGridProps) {
                 <span className={styles.titleLink}>
                   {item.title}
                 </span>
+              ) : item.type === 'book' ? (
+                <Link href={`/books?book=${item.id}`} className={styles.titleLink}>
+                  {item.title}
+                </Link>
               ) : (
                 <Link href={`/${item.type}s/${item.id}`} className={styles.titleLink}>
                   {item.title}

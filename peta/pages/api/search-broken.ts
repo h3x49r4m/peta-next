@@ -35,21 +35,21 @@ async function searchWithoutIndex(query: string, dataDir: string) {
         .join(' ');
       
       if (
-        item.title.toLowerCase().includes(lowerQuery) ||
+        item.frontmatter.title.toLowerCase().includes(lowerQuery) ||
         contentText.toLowerCase().includes(lowerQuery) ||
-        item.tags.some((tag: string) => tag.toLowerCase().includes(lowerQuery))
+        item.frontmatter.tags.some((tag: string) => tag.toLowerCase().includes(lowerQuery))
       ) {
-        const slug = item.title
+        const slug = item.frontmatter.title
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/(^-|-$)/g, '');
         
         results.push({
           id: slug,
-          title: item.title,
+          title: item.frontmatter.title,
           type: 'article',
-          tags: item.tags,
-          date: item.date
+          tags: item.frontmatter.tags,
+          date: item.frontmatter.date
         });
       }
     });
@@ -67,21 +67,21 @@ async function searchWithoutIndex(query: string, dataDir: string) {
         .join(' ');
       
       if (
-        item.title.toLowerCase().includes(lowerQuery) ||
+        item.frontmatter.title.toLowerCase().includes(lowerQuery) ||
         contentText.toLowerCase().includes(lowerQuery) ||
-        item.tags.some((tag: string) => tag.toLowerCase().includes(lowerQuery))
+        item.frontmatter.tags.some((tag: string) => tag.toLowerCase().includes(lowerQuery))
       ) {
-        const slug = item.title
+        const slug = item.frontmatter.title
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/(^-|-$)/g, '');
         
         results.push({
           id: slug,
-          title: item.title,
+          title: item.frontmatter.title,
           type: 'snippet',
-          tags: item.tags,
-          date: item.date
+          tags: item.frontmatter.tags,
+          date: item.frontmatter.date
         });
       }
     });
@@ -99,21 +99,21 @@ async function searchWithoutIndex(query: string, dataDir: string) {
         .join(' ');
       
       if (
-        item.title.toLowerCase().includes(lowerQuery) ||
+        item.frontmatter.title.toLowerCase().includes(lowerQuery) ||
         contentText.toLowerCase().includes(lowerQuery) ||
-        item.tags.some((tag: string) => tag.toLowerCase().includes(lowerQuery))
+        item.frontmatter.tags.some((tag: string) => tag.toLowerCase().includes(lowerQuery))
       ) {
-        const slug = item.title
+        const slug = item.frontmatter.title
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/(^-|-$)/g, '');
         
         results.push({
           id: slug,
-          title: item.title,
+          title: item.frontmatter.title,
           type: 'project',
-          tags: item.tags,
-          date: item.date
+          tags: item.frontmatter.tags,
+          date: item.frontmatter.date
         });
       }
     });
@@ -143,22 +143,22 @@ async function searchWithoutIndex(query: string, dataDir: string) {
       const allContent = contentText + ' ' + sectionsText;
       
       if (
-        item.title.toLowerCase().includes(lowerQuery) ||
+        item.frontmatter.title.toLowerCase().includes(lowerQuery) ||
         allContent.toLowerCase().includes(lowerQuery) ||
-        item.tags.some((tag: string) => tag.toLowerCase().includes(lowerQuery))
+        item.frontmatter.tags.some((tag: string) => tag.toLowerCase().includes(lowerQuery))
       ) {
-        const slug = item.title
+        const slug = item.frontmatter.title
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/(^-|-$)/g, '');
         
         results.push({
           id: slug,
-          title: item.title,
+          title: item.frontmatter.title,
           type: 'book',
-          tags: item.tags,
-          date: item.date,
-          author: item.author
+          tags: item.frontmatter.tags,
+          date: item.frontmatter.date,
+          author: item.frontmatter.author
         });
       }
     });

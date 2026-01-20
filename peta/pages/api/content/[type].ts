@@ -26,16 +26,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const index = await fs.readJson(indexPath);
       console.log('Found index with', index.items?.length || 0, 'items');
       
-      // Transform the data structure to match what the frontend expects
-      const transformedItems = index.items.map((item: any) => ({
-        id: item.id || path.basename(item.frontmatter.title || '', '').replace(/\s+/g, '-').toLowerCase(),
-        title: item.frontmatter.title || 'Untitled',
-        date: item.frontmatter.date || new Date().toISOString().split('T')[0],
-        author: item.frontmatter.author || '',
-        tags: item.frontmatter.tags || [],
-        content: item.content || [],
-        type: type // Keep the singular type for frontend
-      }));
+      // Filter out undefined items and transform the data structure
+      const transformedItems = index.items
+        .filter((item: any) => item && typeof item === 'object')
+        .map((item: any) => {
+          try {
+            return {
+              id: item.id || path.basename(item.title || '', '').replace(/\s+/g, '-').toLowerCase(),
+              title: item.title || 'Untitled',
+              date: item.date || new Date().toISOString().split('T')[0],
+              author: item.author || '',
+              tags: item.tags || [],
+              content: item.content || [],
+              type: type // Keep the singular type for frontend
+            };
+          } catch (error) {
+            console.error('Error processing item:', item, error);
+            return {
+              id: 'unknown',
+              title: 'Untitled',
+              date: new Date().toISOString().split('T')[0],
+              author: '',
+              tags: [],
+              content: [],
+              type: type
+            };
+          }
+        });
       
       console.log('Returning', transformedItems.length, 'transformed items');
       res.status(200).json(transformedItems);

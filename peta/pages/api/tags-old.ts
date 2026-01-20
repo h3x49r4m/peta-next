@@ -19,7 +19,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const indexFile = type === 'post' ? 'articles-index.json' : 
                          type === 'snippet' ? 'snippets-index.json' : 
                          type === 'project' ? 'projects-index.json' : 
-                         type === 'book' ? 'books-index.json' : 
                          `${type}s-index.json`;
         
         const indexPath = path.join(dataDir, indexFile);
@@ -30,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           
           // Collect all tags from this content type
           indexData.items?.forEach((item: any) => {
-            item.tags?.forEach((tag: string) => {
+            item.frontmatter?.tags?.forEach((tag: string) => {
               allTags.add(tag);
             });
           });
@@ -38,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           // Count occurrences of each tag in this content type
           const tagCounts: {[key: string]: number} = {};
           indexData.items?.forEach((item: any) => {
-            item.tags?.forEach((tag: string) => {
+            item.frontmatter?.tags?.forEach((tag: string) => {
               tagCounts[tag] = (tagCounts[tag] || 0) + 1;
             });
           });

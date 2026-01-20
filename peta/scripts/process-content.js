@@ -49,48 +49,120 @@ async function processContentType(type, snippets = [], snippetResolver = null, o
   const contentDir = path.join(CONTENT_DIR, type);
   console.log('Looking in:', contentDir);
   
+  if (!await fs.pathExists(contentDir)) {
+    console.log(`Directory ${contentDir} does not exist, skipping...`);
+    return;
+  }
+  
   const files = glob.sync(`${contentDir}/*.rst`);
   console.log(`Found ${files.length} files`);
   
   const items = [];
-  
   for (const file of files) {
-    const content = await fs.readFile(file, 'utf8');
-    const parsed = await parseRst(content);
+    const relativePath = path.relative(contentDir, file);
+    const id = relativePath.replace(/\.rst$/, '');
     
-    // Process snippet references if this is an article and we have snippet resolver
-    const actualType = outputType || type;
-    if (actualType === 'articles' && snippetResolver) {
-      parsed.content = await snippetResolver.resolveSnippets(parsed.content, snippets);
+    try {
+      const content = await fs.readFile(file, 'utf8');
+      const parsed = await parseRst(content);
+      
+      items.push({
+        id,
+        ...parsed.frontmatter,
+        content: parsed.content,
+        snippet_refs: parsed.snippet_refs || []
+      });
+      
+      console.log(`Processed ${relativePath}`);
+    } catch (error) {
+      console.error(`Error processing ${file}:`, error);
+    }
+  }
+  
+  // Write index file
+  const indexFileName = outputType ? `${outputType}-index.json` : `${type}-index.json`;
+  await fs.writeJson(path.join(OUTPUT_DIR, indexFileName), { items }, { spaces: 2 });
+  
+  // Write chunked files if needed
+  if (items.length > CHUNK_SIZE) {
+    const chunks = [];
+    for (let i = 0; i < items.length; i += CHUNK_SIZE) {
+      chunks.push(items.slice(i, i + CHUNK_SIZE));
     }
     
-    items.push(parsed);
+    for (let i = 0; i < chunks.length; i++) {
+      await fs.writeJson(
+        path.join(OUTPUT_DIR, 'content-chunks', `${outputType || type}-chunk-${i + 1}.json`),
+        { items: chunks[i] },
+        { spaces: 2 }
+      );
+    }
     
-    const filename = path.basename(file, '.rst');
-    console.log(`Processed ${filename}.rst`);
+    console.log(`Created ${chunks.length} chunks with ${CHUNK_SIZE} items each`);
+  } else {
+    console.log(`Created chunk 1 with ${items.length} items`);
+  }
+}
+
+async function processBooks() {
+  console.log('Processing books...');
+  
+  const booksDir = path.join(CONTENT_DIR, 'books');
+  if (!await fs.pathExists(booksDir)) {
+    console.log('Books directory does not exist, skipping...');
+    return;
   }
   
-  // Create chunks
-  const actualType = outputType || type;
-  for (let i = 0; i < items.length; i += CHUNK_SIZE) {
-    const chunk = items.slice(i, i + CHUNK_SIZE);
-    const chunkNumber = Math.floor(i / CHUNK_SIZE) + 1;
+  const bookFolders = glob.sync(`${booksDir}/*/`);
+  console.log(`Found ${bookFolders.length} book folders`);
+  
+  const books = [];
+  for (const bookFolder of bookFolders) {
+    const indexPath = path.join(bookFolder, 'index.rst');
+    const bookName = path.basename(bookFolder);
     
-    await fs.writeJson(
-      path.join(OUTPUT_DIR, 'content-chunks', `${actualType}-chunk-${chunkNumber}.json`),
-      chunk,
-      { spaces: 2 }
-    );
-    
-    console.log(`Created chunk ${chunkNumber} with ${chunk.length} items`);
+    if (await fs.pathExists(indexPath)) {
+      try {
+        const content = await fs.readFile(indexPath, 'utf8');
+        const parsed = await parseRst(content);
+        
+        // Read section files
+        const sectionFiles = glob.sync(`${bookFolder}/*.rst`);
+        const sections = [];
+        
+        for (const sectionFile of sectionFiles) {
+          if (!sectionFile.endsWith('index.rst')) {
+            const sectionContent = await fs.readFile(sectionFile, 'utf8');
+            const sectionParsed = await parseRst(sectionContent);
+            const sectionName = path.basename(sectionFile, '.rst');
+            sections.push({
+              id: sectionName,
+              title: sectionParsed.frontmatter.title || sectionName,
+              content: sectionParsed.content
+            });
+          }
+        }
+        
+        // Create a single item with sections
+        const bookItem = {
+          id: bookName,
+          ...parsed.frontmatter,
+          content: parsed.content,
+          snippet_refs: parsed.snippet_refs || [],
+          sections: sections
+        };
+        
+        books.push(bookItem);
+        console.log(`Processed ${bookName}/index.rst with ${sections.length} sections`);
+      } catch (error) {
+        console.error(`Error processing ${indexPath}:`, error);
+      }
+    }
   }
   
-  // Create index file
-  await fs.writeJson(
-    path.join(OUTPUT_DIR, `${actualType}-index.json`),
-    { items, total: items.length },
-    { spaces: 2 }
-  );
+  // Write books index
+  await fs.writeJson(path.join(OUTPUT_DIR, 'books-index.json'), { items: books }, { spaces: 2 });
+  console.log(`Created books index with ${books.length} books`);
 }
 
 async function generateTagsIndex() {
@@ -106,13 +178,23 @@ async function generateTagsIndex() {
       const { items } = await fs.readJson(indexPath);
       
       for (const item of items) {
-        if (item.frontmatter && item.frontmatter.tags) {
-          for (const tag of item.frontmatter.tags) {
+        if (item.tags && Array.isArray(item.tags)) {
+          for (const tag of item.tags) {
             if (!tags.has(tag)) {
-              tags.set(tag, { count: 0, items: [] });
+              tags.set(tag, {
+                name: tag,
+                count: 0,
+                items: []
+              });
             }
-            tags.get(tag).count++;
-            tags.get(tag).items.push(item.id);
+            
+            const tagData = tags.get(tag);
+            tagData.count++;
+            tagData.items.push({
+              id: item.id,
+              title: item.title,
+              type: type.slice(0, -1) // Remove 's' from plural
+            });
           }
         }
       }
@@ -120,16 +202,10 @@ async function generateTagsIndex() {
   }
   
   // Convert to array and sort
-  const tagsArray = Array.from(tags.entries())
-    .map(([name, data]) => ({ name, ...data }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const tagsArray = Array.from(tags.values())
+    .sort((a, b) => b.count - a.count);
   
-  await fs.writeJson(
-    path.join(OUTPUT_DIR, 'tags.json'),
-    tagsArray,
-    { spaces: 2 }
-  );
-  
+  await fs.writeJson(path.join(OUTPUT_DIR, 'tags-index.json'), tagsArray, { spaces: 2 });
   console.log(`Generated tags index with ${tagsArray.length} tags`);
 }
 
@@ -146,11 +222,25 @@ async function generateSearchIndex() {
       const { items } = await fs.readJson(indexPath);
       
       for (const item of items) {
+        let contentText = '';
+        
+        if (item.content) {
+          contentText = item.content.map(c => c.content || '').join(' ');
+        }
+        
+        // For books, also include sections content
+        if (type === 'books' && item.sections) {
+          const sectionsText = item.sections.map(section => 
+            section.content.map(c => c.content || '').join(' ')
+          ).join(' ');
+          contentText += ' ' + sectionsText;
+        }
+        
         documents.push({
           id: item.id,
           type,
           title: item.frontmatter?.title || 'Untitled',
-          content: item.content ? item.content.join(' ').replace(/<[^>]*>/g, '') : '', // Strip HTML
+          content: contentText.replace(/<[^>]*>/g, ''), // Strip HTML
           tags: item.frontmatter?.tags || [],
           date: item.frontmatter?.date || new Date().toISOString().split('T')[0],
           url: `/${type.slice(0, -1)}/${item.id}`
@@ -174,76 +264,23 @@ async function parseRst(content) {
     return parseRstFallback(content);
   } catch (error) {
     console.error('Error parsing RST:', error);
-    throw error;
+    return {
+      frontmatter: {},
+      content: [],
+      snippet_refs: []
+    };
   }
-}
-
-async function processBooks() {
-  console.log('Processing books...');
-  
-  const booksDir = path.join(CONTENT_DIR, 'books');
-  console.log('Looking in:', booksDir);
-  
-  if (!(await fs.pathExists(booksDir))) {
-    console.log('Books directory not found, skipping...');
-    return;
-  }
-  
-  const bookFolders = await fs.readdir(booksDir);
-  const items = [];
-  
-  for (const folder of bookFolders) {
-    const folderPath = path.join(booksDir, folder);
-    const stat = await fs.stat(folderPath);
-    
-    if (stat.isDirectory()) {
-      const indexPath = path.join(folderPath, 'index.rst');
-      
-      if (await fs.pathExists(indexPath)) {
-        const content = await fs.readFile(indexPath, 'utf8');
-        const parsed = await parseRst(content);
-        
-        // Read section files
-        const sectionFiles = glob.sync(`${folderPath}/*.rst`);
-        const sections = [];
-        
-        for (const sectionFile of sectionFiles) {
-          if (!sectionFile.endsWith('index.rst')) {
-            const sectionContent = await fs.readFile(sectionFile, 'utf8');
-            const sectionParsed = await parseRst(sectionContent);
-            const sectionName = path.basename(sectionFile, '.rst');
-            sections.push({
-              id: sectionName,
-              title: sectionParsed.frontmatter.title || sectionName,
-              content: sectionParsed.content
-            });
-          }
-        }
-        
-        // Create a single item with sections
-        const bookItem = {
-          frontmatter: parsed.frontmatter,
-          content: parsed.content,
-          snippet_refs: parsed.snippet_refs || [],
-          sections: sections
-        };
-        
-        items.push(bookItem);
-        
-        console.log(`Processed ${folder}/index.rst`);
-      }
-    }
-  }
-  
-  // Create index file for books
-  await fs.writeJson(
-    path.join(OUTPUT_DIR, 'books-index.json'),
-    { items, total: items.length },
-    { spaces: 2 }
-  );
-  
-  console.log(`Created books index with ${items.length} items`);
 }
 
 // Run the processor
-processContent().catch(console.error);
+if (require.main === module) {
+  processContent().catch(console.error);
+}
+
+module.exports = {
+  processContent,
+  processContentType,
+  processBooks,
+  generateTagsIndex,
+  generateSearchIndex
+};

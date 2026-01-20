@@ -8,6 +8,15 @@ import MathRenderer from '../../components/MathRenderer';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
+export async function getServerSideProps(context: any) {
+  const { query } = context;
+  return {
+    props: {
+      initialBookId: query.book || null,
+    },
+  };
+}
+
 interface BookSection {
   id: string;
   title: string;
@@ -26,7 +35,7 @@ interface Book {
   content?: any[];
 }
 
-export default function Books() {
+export default function Books({ initialBookId }: { initialBookId?: string }) {
   const [books, setBooks] = useState<Book[]>([]);
   const [tags, setTags] = useState<any[]>([]);
   const [selectedTag, setSelectedTag] = useState<string>('');
@@ -37,31 +46,29 @@ export default function Books() {
     const [showBackToTop, setShowBackToTop] = useState(false);
     const [loadedSections, setLoadedSections] = useState<Set<string>>(new Set());
       const router = useRouter();
+  
+  // Get the book ID from router query (works on both server and client)
+  const bookId = (router.query.book as string) || initialBookId;
   useEffect(() => {
     // Always load books content on initial page load
     loadBooksContent();
-    
-    // Check for book parameter in URL on initial load
-    const urlParams = new URLSearchParams(window.location.search);
-    const bookId = urlParams.get('book');
-    
-    if (bookId) {
-      console.log('Found book ID in URL:', bookId);
-      // Load books first, then select the book
-      loadBooksContent().then((booksData) => {
-        console.log('Loaded books:', booksData.map((b: any) => b.id));
-        const book = booksData.find((b: any) => b.id === bookId);
-        console.log('Found matching book:', book);
-        if (book) {
-          console.log('Setting selected book:', book.title);
-          setSelectedBook(book);
-          setShowTOC(true);
-        } else {
-          console.log('Book not found with ID:', bookId);
-        }
-      });
-    }
   }, []);
+
+  useEffect(() => {
+    // Check for book parameter in URL after component mounts and books are loaded
+    if (books.length > 0 && bookId) {
+      console.log('Found book ID in URL:', bookId);
+      const book = books.find((b: any) => b.id === bookId);
+      console.log('Found matching book:', book);
+      if (book) {
+        console.log('Setting selected book:', book.title);
+        setSelectedBook(book);
+        setShowTOC(true);
+      } else {
+        console.log('Book not found with ID:', bookId);
+      }
+    }
+  }, [books, bookId]);
 
   
 

@@ -26,9 +26,39 @@ export default function Home() {
   const [articlesTags, setArticlesTags] = useState<TagData[]>([]);
   const [snippetsTags, setSnippetsTags] = useState<TagData[]>([]);
   const [projectsTags, setProjectsTags] = useState<TagData[]>([]);
+  const [booksTags, setBooksTags] = useState<TagData[]>([]);
   const [tagsLoading, setTagsLoading] = useState(true);
 
   useEffect(() => {
+    const loadTags = async () => {
+      try {
+        const [articlesResponse, snippetsResponse, projectsResponse, booksResponse] = await Promise.all([
+          fetch('/api/tags?type=post'),
+          fetch('/api/tags?type=snippet'),
+          fetch('/api/tags?type=project'),
+          fetch('/api/tags?type=book')
+        ]);
+        
+        const articlesData = await articlesResponse.json();
+        const snippetsData = await snippetsResponse.json();
+        const projectsData = await projectsResponse.json();
+        const booksData = await booksResponse.json();
+        
+        // Sort tags by count (descending)
+        const sortTags = (tags: TagData[]) => 
+          tags.sort((a, b) => b.count - a.count);
+        
+        setArticlesTags(sortTags(articlesData));
+        setSnippetsTags(sortTags(snippetsData));
+        setProjectsTags(sortTags(projectsData));
+        setBooksTags(sortTags(booksData));
+      } catch (error) {
+        console.error('Error loading tags:', error);
+      } finally {
+        setTagsLoading(false);
+      }
+    };
+
     loadTags();
   }, []);
 
@@ -48,32 +78,6 @@ export default function Home() {
       router.events.off('routeChangeComplete', handleRouteChange);
     };
   }, [router.events]);
-
-  const loadTags = async () => {
-    try {
-      const [articlesResponse, snippetsResponse, projectsResponse] = await Promise.all([
-        fetch('/api/tags?type=post'),
-        fetch('/api/tags?type=snippet'),
-        fetch('/api/tags?type=project')
-      ]);
-      
-      const articlesData = await articlesResponse.json();
-      const snippetsData = await snippetsResponse.json();
-      const projectsData = await projectsResponse.json();
-      
-      // Sort tags by count (descending)
-      const sortTags = (tags: TagData[]) => 
-        tags.sort((a, b) => b.count - a.count);
-      
-      setArticlesTags(sortTags(articlesData));
-      setSnippetsTags(sortTags(snippetsData));
-      setProjectsTags(sortTags(projectsData));
-    } catch (error) {
-      console.error('Error loading tags:', error);
-    } finally {
-      setTagsLoading(false);
-    }
-  };
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
@@ -145,6 +149,7 @@ export default function Home() {
             {renderTagCategory('Articles', articlesTags)}
             {renderTagCategory('Snippets', snippetsTags)}
             {renderTagCategory('Projects', projectsTags)}
+            {renderTagCategory('Books', booksTags)}
           </div>
         </section>
       )}
