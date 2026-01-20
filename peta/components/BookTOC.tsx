@@ -385,119 +385,24 @@ export default function BookTOC({ book, snippets = [], snippetsLoading = false, 
             // Use the actual snippet title if available
             const snippetTitle = snippet?.frontmatter?.title || snippet?.title || snippetId.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
             
-            // Extract headers from snippet content
-            const snippetChildren: any[] = [];
-            if (snippet && snippet.content) {
-              snippet.content.forEach((c: any) => {
-                if (c.type === 'text') {
-                  const snippetLines = c.content.split('\n');
-                  
-                  for (let j = 0; j < snippetLines.length; j++) {
-                    const snippetLine = snippetLines[j];
-                    const snippetNextLine = snippetLines[j + 1];
-                    
-                    if (snippetNextLine && (snippetNextLine.startsWith('-') || snippetNextLine.startsWith('~')) && 
-                        snippetNextLine.trim().length > 0) {
-                      const underlineChar = snippetNextLine.trim()[0];
-                      if (snippetNextLine.trim() === underlineChar.repeat(snippetNextLine.trim().length)) {
-                        let headerLevel = 3;
-                        if (underlineChar === '~') headerLevel = 4;
-                        
-                        const headingText = snippetLine.trim();
-                        const headingId = `snippet-${snippetId}-${headingText.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-')}`;
-                        
-                        snippetChildren.push({
-                          id: headingId,
-                          title: headingText,
-                          level: headerLevel + 1
-                        });
-                      }
-                    }
-                  }
-                }
-              });
-            }
-            
             allSnippets.push({
               id: snippetId,
               title: `Snippet: ${snippet ? (snippet.frontmatter?.title || snippet.title) : snippetTitle}`,
               sectionId: section.id,
               sectionTitle: section.title,
-              children: snippetChildren
+              children: [] // No subheaders
             });
           } else if (item.type === 'embedded-snippet') {
             const snippetTitle = item.title || item.id;
             const formattedTitle = snippetTitle.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
             const snippetId = item.id || `snippet-${Date.now()}`;
             
-            // Extract headers from embedded snippet content
-            const snippetChildren: any[] = [];
-            if (item.content) {
-              if (Array.isArray(item.content)) {
-                item.content.forEach((c: any) => {
-                  if (c.type === 'text') {
-                    const snippetLines = c.content.split('\n');
-                    
-                    for (let j = 0; j < snippetLines.length; j++) {
-                      const snippetLine = snippetLines[j];
-                      const snippetNextLine = snippetLines[j + 1];
-                      
-                      if (snippetNextLine && (snippetNextLine.startsWith('=') || snippetNextLine.startsWith('-') || snippetNextLine.startsWith('~')) && 
-                          snippetNextLine.trim().length > 0) {
-                        const underlineChar = snippetNextLine.trim()[0];
-                        if (snippetNextLine.trim() === underlineChar.repeat(snippetNextLine.trim().length)) {
-                          let headerLevel = 2;
-                          if (underlineChar === '-') headerLevel = 3;
-                          else if (underlineChar === '~') headerLevel = 4;
-                          
-                          const headingText = snippetLine.trim();
-                          const headingId = `${snippetId}-${headingText.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-')}`;
-                          
-                          snippetChildren.push({
-                            id: headingId,
-                            title: headingText,
-                            level: headerLevel + 1
-                          });
-                        }
-                      }
-                    }
-                  }
-                });
-              } else if (typeof item.content === 'string') {
-                const snippetLines = item.content.split('\n');
-                
-                for (let j = 0; j < snippetLines.length; j++) {
-                  const snippetLine = snippetLines[j];
-                  const snippetNextLine = snippetLines[j + 1];
-                  
-                  if (snippetNextLine && (snippetNextLine.startsWith('=') || snippetNextLine.startsWith('-') || snippetNextLine.startsWith('~')) && 
-                      snippetNextLine.trim().length > 0) {
-                    const underlineChar = snippetNextLine.trim()[0];
-                    if (snippetNextLine.trim() === underlineChar.repeat(snippetNextLine.trim().length)) {
-                      let headerLevel = 2;
-                      if (underlineChar === '-') headerLevel = 3;
-                      else if (underlineChar === '~') headerLevel = 4;
-                      
-                      const headingText = snippetLine.trim();
-                      const headingId = `${snippetId}-${headingText.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-')}`;
-                      
-                      snippetChildren.push({
-                        id: headingId,
-                        title: headingText,
-                        level: headerLevel + 1
-                      });
-                    }
-                  }
-                }
-              }
-            }
-            
             allSnippets.push({
               id: snippetId,
               title: formattedTitle,
               sectionId: section.id,
               sectionTitle: section.title,
-              children: snippetChildren
+              children: [] // No subheaders
             });
           }
         });
@@ -572,108 +477,24 @@ export default function BookTOC({ book, snippets = [], snippetsLoading = false, 
                     
                     {sectionSnippets.length > 0 && (
                       <ul className={styles.snippetList}>
-                        {sectionSnippets.map((snippet) => {
-                          const hasChildren = snippet.children && snippet.children.length > 0;
-                          const isSnippetExpanded = expandedSnippets.has(snippet.id) || activeId.startsWith(`snippet-${snippet.id}`) || activeId.includes(`${snippet.id}-`);
-                          
-                          return (
-                            <li key={snippet.id} className={styles.snippetItem}>
-                              {hasChildren ? (
-                                <button 
-                                  className={`${styles.tocLink} ${styles.snippetLink} ${styles.snippetToggle} ${activeId === `snippet-${snippet.id}` ? styles.active : ''}`}
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    window.history.pushState(null, '', `#snippet-${snippet.id}`);
-                                    
-                                    // Toggle expanded state
-                                    setExpandedSnippets(prev => {
-                                      const newSet = new Set(prev);
-                                      if (newSet.has(snippet.id)) {
-                                        newSet.delete(snippet.id);
-                                      } else {
-                                        newSet.add(snippet.id);
-                                      }
-                                      return newSet;
-                                    });
-                                    
-                                    // Scroll to the snippet
-                                    scrollToSnippet(snippet.id);
-                                  }}
-                                >
-                                  <span 
-                                    style={{ 
-                                      display: 'inline-flex', 
-                                      alignItems: 'center', 
-                                      justifyContent: 'center',
-                                      width: '10px', 
-                                      height: '10px',
-                                      borderRadius: '1px',
-                                      backgroundColor: 'var(--primary-color)',
-                                      color: 'white',
-                                      fontSize: '9px',
-                                      fontWeight: 'bold',
-                                      marginRight: '3px',
-                                      transition: 'transform 0.2s ease'
-                                    }}
-                                  >
-                                    {isSnippetExpanded ? '−' : '+'}
-                                  </span>
-                                  <span className={styles.snippetIcon}>📄</span>
-                                  {snippet.title}
-                                </button>
-                              ) : (
-                                <a 
-                                  href={`#snippet-${snippet.id}`}
-                                  className={`${styles.tocLink} ${styles.snippetLink} ${activeId === `snippet-${snippet.id}` ? styles.active : ''}`}
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    window.history.pushState(null, '', `#snippet-${snippet.id}`);
-                                    
-                                    // Scroll to the snippet
-                                    scrollToSnippet(snippet.id);
-                                  }}
-                                >
-                                  <span className={styles.snippetIcon}>📄</span>
-                                  {snippet.title}
-                                </a>
-                              )}
-                              {isSnippetExpanded && hasChildren && (
-                                <ul className={styles.snippetSubList}>
-                                  {snippet.children!.map((child: any) => (
-                                    <li key={child.id} className={styles.snippetSubItem}>
-                                      <a 
-                                        href={`#${child.id}`}
-                                        className={`${styles.tocLink} ${styles.snippetSubLink} ${activeId === child.id ? styles.active : ''}`}
-                                        onClick={(e) => {
-                                          e.preventDefault();
-                                          window.history.pushState(null, '', `#${child.id}`);
-                                          
-                                          // Check if the snippet is in the current section
-                                          if (snippet.sectionId !== currentSectionId) {
-                                            // Switch to the section containing this snippet first
-                                            if (onSectionSelect) {
-                                              onSectionSelect(snippet.sectionId);
-                                            }
-                                            // Wait a bit for the section to load
-                                            setTimeout(() => {
-                                              scrollToElement(child.id);
-                                            }, 300);
-                                          } else {
-                                            // Snippet is in current section, scroll directly
-                                            scrollToElement(child.id);
-                                          }
-                                        }}
-                                      >
-                                        {child.title}
-                                      </a>
-                                    </li>
-                                  ))}
-                                </ul>
-                              )}
-                            </li>
-                          );
-                        })}
+                        {sectionSnippets.map((snippet) => (
+                          <li key={snippet.id} className={styles.snippetItem}>
+                            <a 
+                              href={`#snippet-${snippet.id}`}
+                              className={`${styles.tocLink} ${styles.snippetLink} ${activeId === `snippet-${snippet.id}` ? styles.active : ''}`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                window.history.pushState(null, '', `#snippet-${snippet.id}`);
+                                
+                                // Scroll to the snippet
+                                scrollToSnippet(snippet.id);
+                              }}
+                            >
+                              <span className={styles.snippetIcon}>📄</span>
+                              {snippet.title}
+                            </a>
+                          </li>
+                        ))}
                       </ul>
                     )}
                   </div>
