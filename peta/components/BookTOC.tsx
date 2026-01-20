@@ -27,6 +27,7 @@ interface BookTOCProps {
 export default function BookTOC({ book, snippets = [], snippetsLoading = false, currentSectionId = '', onSectionSelect }: BookTOCProps) {
   const [activeId, setActiveId] = useState<string>('');
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isDetailsExpanded, setIsDetailsExpanded] = useState(true);
   const [expandedSnippets, setExpandedSnippets] = useState<Set<string>>(new Set());
   const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -420,39 +421,56 @@ export default function BookTOC({ book, snippets = [], snippetsLoading = false, 
     <div className={`${styles.bookTOC} ${isExpanded ? styles.expanded : ''}`}>
       {isExpanded && (
         <div className={styles.tocPanel}>
+          {/* Unified header with two rows */}
           <div className={styles.tocHeader}>
-            <h3 className={styles.tocTitle}>{book.title}</h3>
-            <div className={styles.tocNavigation}>
-              <button 
-                className={`${styles.navButton} ${styles.prevButton}`}
-                onClick={() => {
-                  const currentIndex = book.sections.findIndex(s => s.id === currentSectionId);
-                  if (currentIndex > 0) {
-                    const prevSection = book.sections[currentIndex - 1];
-                    if (onSectionSelect) {
-                      onSectionSelect(prevSection.id);
-                    }
-                  }
-                }}
-                disabled={!currentSectionId || book.sections.findIndex(s => s.id === currentSectionId) === 0}
-              >
-                ←
-              </button>
-              <button 
-                className={`${styles.navButton} ${styles.nextButton}`}
-                onClick={() => {
-                  const currentIndex = book.sections.findIndex(s => s.id === currentSectionId);
-                  if (currentIndex < book.sections.length - 1) {
-                    const nextSection = book.sections[currentIndex + 1];
-                    if (onSectionSelect) {
-                      onSectionSelect(nextSection.id);
-                    }
-                  }
-                }}
-                disabled={!currentSectionId || book.sections.findIndex(s => s.id === currentSectionId) === book.sections.length - 1}
-              >
-                →
-              </button>
+            <div className={styles.tocContent}>
+              {/* First row: Book title */}
+              <div className={styles.titleRow}>
+                <h3 className={styles.tocTitle}>{book.title}</h3>
+              </div>
+              {/* Second row: Controls */}
+              <div className={styles.controlsRow}>
+                <button 
+                  className={`${styles.toggleButton} ${!isDetailsExpanded ? styles.collapsed : ''}`}
+                  onClick={() => {
+                    setIsDetailsExpanded(!isDetailsExpanded);
+                  }}
+                >
+                  {isDetailsExpanded ? '-' : '+'}
+                </button>
+                <div className={styles.tocNavigation}>
+                  <button 
+                    className={`${styles.navButton} ${styles.prevButton}`}
+                    onClick={() => {
+                      const currentIndex = book.sections.findIndex(s => s.id === currentSectionId);
+                      if (currentIndex > 0) {
+                        const prevSection = book.sections[currentIndex - 1];
+                        if (onSectionSelect) {
+                          onSectionSelect(prevSection.id);
+                        }
+                      }
+                    }}
+                    disabled={!currentSectionId || book.sections.findIndex(s => s.id === currentSectionId) === 0}
+                  >
+                    ←
+                  </button>
+                  <button 
+                    className={`${styles.navButton} ${styles.nextButton}`}
+                    onClick={() => {
+                      const currentIndex = book.sections.findIndex(s => s => s.id === currentSectionId);
+                      if (currentIndex < book.sections.length - 1) {
+                        const nextSection = book.sections[currentIndex + 1];
+                        if (onSectionSelect) {
+                          onSectionSelect(nextSection.id);
+                        }
+                      }
+                    }}
+                    disabled={!currentSectionId || book.sections.findIndex(s => s.id === currentSectionId) === book.sections.length - 1}
+                  >
+                    →
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
           <ul className={styles.tocList}>
@@ -482,7 +500,7 @@ export default function BookTOC({ book, snippets = [], snippetsLoading = false, 
                     </a>
                     
                     {/* Show headers and their snippets within the section */}
-                    {sectionHeaders.length > 0 && (
+                    {isDetailsExpanded && sectionHeaders.length > 0 && (
                       <ul className={styles.headerList}>
                         {sectionHeaders.map((header) => {
                           // Find snippets that belong to this header
@@ -579,7 +597,7 @@ export default function BookTOC({ book, snippets = [], snippetsLoading = false, 
                     )}
                     
                     {/* Show snippets that are not under any header */}
-                    {(() => {
+                    {isDetailsExpanded && (() => {
                       const standaloneSnippets = sectionSnippets.filter(s => !s.header);
                       if (standaloneSnippets.length === 0) return null;
                       
