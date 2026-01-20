@@ -17,12 +17,7 @@ export default function Project({ project }: ProjectProps) {
   useEffect(() => {
     // Redirect to /projects page with project parameter
     if (!router.isFallback && project) {
-      const title = project.frontmatter?.title || 'untitled';
-      const slug = title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
-      router.replace(`/projects?project=${slug}`);
+      router.replace(`/projects?project=${project.id}`);
     }
   }, [router.isFallback, project, router]);
 
@@ -32,7 +27,7 @@ export default function Project({ project }: ProjectProps) {
     return <div>Loading...</div>;
   }
 
-  if (!project) {
+  if (!project || !project.frontmatter?.title) {
     return <div>Project not found</div>;
   }
 
@@ -197,18 +192,15 @@ export const getStaticPaths: GetStaticPaths = async () => {
     }
 
     const projectsIndex = await fs.readJson(projectsIndexPath);
-    const paths = projectsIndex.items.map((item: any) => {
-      // Generate slug from title
-      const title = item.frontmatter?.title || 'untitled';
-      const slug = title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
-      
-      return {
-        params: { slug },
-      };
-    });
+// Generate paths for all projects with titles
+    const paths = projectsIndex.items
+      .filter((item: any) => item.frontmatter?.title)
+      .map((item: any) => {
+        // Use the project ID as the slug
+        return {
+          params: { slug: item.id },
+        };
+      });
 
     return {
       paths,
@@ -239,16 +231,9 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
       return { notFound: true };
     }
     
-    // Find the project by matching slug with title
+    // Find the project by ID
     const projectsIndex = await fs.readJson(projectsIndexPath);
-    const projectItem = projectsIndex.items.find((item: any) => {
-      const title = item.frontmatter?.title || 'untitled';
-      const itemSlug = title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
-      return itemSlug === slug;
-    });
+    const projectItem = projectsIndex.items.find((item: any) => item.id === slug && item.frontmatter?.title);
     
     if (!projectItem) {
       return { notFound: true };

@@ -8,7 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     // Correct path - data is in _build/data
     const dataDir = path.join(process.cwd(), '../_build/data');
-    const tagsPath = path.join(dataDir, 'tags.json');
+    const tagsPath = path.join(dataDir, 'tags-index.json');
     
     if (await fs.pathExists(tagsPath)) {
       const tagsData = await fs.readJson(tagsPath);

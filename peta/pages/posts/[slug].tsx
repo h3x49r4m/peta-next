@@ -29,7 +29,7 @@ export default function Post({ post }: PostProps) {
     return <div>Loading...</div>;
   }
 
-  if (!post) {
+  if (!post || !post.frontmatter?.title) {
     return <div>Post not found</div>;
   }
 
@@ -204,18 +204,20 @@ export const getStaticPaths: GetStaticPaths = async () => {
     }
 
     const articlesIndex = await fs.readJson(articlesIndexPath);
-    const paths = articlesIndex.items.map((item: any) => {
-      // Generate slug from title
-      const title = item.frontmatter?.title || 'untitled';
-      const slug = title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
-      
-      return {
-        params: { slug },
-      };
-    });
+    const paths = articlesIndex.items
+      .filter((item: any) => item.frontmatter?.title) // Only include items with titles
+      .map((item: any) => {
+        // Generate slug from title
+        const title = item.frontmatter?.title;
+        const slug = title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '');
+        
+        return {
+          params: { slug },
+        };
+      });
 
     return {
       paths,
@@ -249,7 +251,8 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     // Find the post by matching slug with title
     const articlesIndex = await fs.readJson(articlesIndexPath);
     const postItem = articlesIndex.items.find((item: any) => {
-      const title = item.frontmatter?.title || 'untitled';
+      if (!item.frontmatter?.title) return false;
+      const title = item.frontmatter.title;
       const itemSlug = title
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')

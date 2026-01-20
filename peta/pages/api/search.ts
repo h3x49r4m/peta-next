@@ -39,13 +39,8 @@ async function searchWithoutIndex(query: string, dataDir: string) {
         contentText.toLowerCase().includes(lowerQuery) ||
         item.tags.some((tag: string) => tag.toLowerCase().includes(lowerQuery))
       ) {
-        const slug = item.title
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/(^-|-$)/g, '');
-        
         results.push({
-          id: slug,
+          id: item.id,
           title: item.title,
           type: 'article',
           tags: item.tags,
@@ -71,13 +66,8 @@ async function searchWithoutIndex(query: string, dataDir: string) {
         contentText.toLowerCase().includes(lowerQuery) ||
         item.tags.some((tag: string) => tag.toLowerCase().includes(lowerQuery))
       ) {
-        const slug = item.title
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/(^-|-$)/g, '');
-        
         results.push({
-          id: slug,
+          id: item.id,
           title: item.title,
           type: 'snippet',
           tags: item.tags,
@@ -103,13 +93,8 @@ async function searchWithoutIndex(query: string, dataDir: string) {
         contentText.toLowerCase().includes(lowerQuery) ||
         item.tags.some((tag: string) => tag.toLowerCase().includes(lowerQuery))
       ) {
-        const slug = item.title
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/(^-|-$)/g, '');
-        
         results.push({
-          id: slug,
+          id: item.id,
           title: item.title,
           type: 'project',
           tags: item.tags,
@@ -147,13 +132,8 @@ async function searchWithoutIndex(query: string, dataDir: string) {
         allContent.toLowerCase().includes(lowerQuery) ||
         item.tags.some((tag: string) => tag.toLowerCase().includes(lowerQuery))
       ) {
-        const slug = item.title
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/(^-|-$)/g, '');
-        
         results.push({
-          id: slug,
+          id: item.id,
           title: item.title,
           type: 'book',
           tags: item.tags,

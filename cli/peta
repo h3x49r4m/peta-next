@@ -37,6 +37,7 @@ Commands:
     init <type> "<title>"    Create a new content file
     dev                      Start development server
     build                    Build for production
+    test                     Run all tests
     help                     Show this help message
 
 Content Types:
@@ -50,6 +51,7 @@ Examples:
     peta init project "My Awesome Project"
     peta dev
     peta build
+    peta test
 
 EOF
 }
@@ -102,6 +104,28 @@ build_site() {
     fi
 }
 
+# Function to run tests
+run_tests() {
+    cd "$PROJECT_ROOT/tests"
+    if [ -f "package.json" ]; then
+        print_info "Installing test dependencies..."
+        npm install > /dev/null 2>&1
+        
+        print_info "Running tests..."
+        npm test
+        
+        if [ $? -eq 0 ]; then
+            print_success "All tests passed!"
+        else
+            print_error "Some tests failed"
+            exit 1
+        fi
+    else
+        print_error "Test configuration not found. Make sure tests/ directory exists with package.json"
+        exit 1
+    fi
+}
+
 # Main script logic
 case "${1:-help}" in
     init)
@@ -112,6 +136,9 @@ case "${1:-help}" in
         ;;
     build)
         build_site
+        ;;
+    test)
+        run_tests
         ;;
     help|--help|-h)
         show_help

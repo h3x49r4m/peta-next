@@ -30,6 +30,7 @@ export default function Snippets() {
   useEffect(() => {
     // Check for snippet query parameter
     const snippetId = router.query.snippet as string;
+    
     if (snippetId && snippets.length > 0) {
       const snippet = snippets.find(s => s.id === snippetId);
       if (snippet) {
@@ -127,18 +128,17 @@ export default function Snippets() {
       {/* Section 1: Header with title and tags */}
       <header className={styles.pageHeader}>
         <div className={styles.headerSection}>
-          <Link href="/snippets" onClick={handleTitleClick} className={styles.titleLink}>
-            <h1 className={styles.title}>Snippets</h1>
-          </Link>
-          <div className={styles.tagsSection}>
-            <TagFilter
-              tags={tags}
-              selectedTag={selectedTag}
-              onTagSelect={setSelectedTag}
-            />
-          </div>
-        </div>
-      </header>
+                <Link href="/snippets" onClick={handleTitleClick} className={styles.titleLink}>
+                  <h1 className={styles.title}>Snippets</h1>
+                </Link>
+                <div className={styles.tagsSection}>
+                  <TagFilter
+                    tags={tags}
+                    selectedTag={selectedTag}
+                    onTagSelect={setSelectedTag}
+                  />
+                </div>
+              </div>      </header>
       
       {/* Section 2: Full-width cards grid */}
       <main className={styles.mainContentFull}>

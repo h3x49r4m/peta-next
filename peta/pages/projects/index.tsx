@@ -58,6 +58,7 @@ export default function Projects() {
   useEffect(() => {
     // Check for project query parameter
     const projectId = router.query.project as string;
+    
     if (projectId && projects.length > 0) {
       const project = projects.find(p => p.id === projectId);
       if (project) {

@@ -439,12 +439,14 @@ const parseRST = (text: string, articleTitle: string, snippetId?: string): strin
             if (snippet) {
               const placeholder = document.getElementById(`snippet-${snippetId}`);
               if (placeholder) {
-                placeholder.innerHTML = `
-                  <div class="${styles.snippetHeader}">
+                // Create a temporary div to render the content
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = `
+                  <div class="snippet-header">
                     <h3>${snippet.frontmatter?.title || snippet.title}</h3>
-                    <span class="${styles.snippetType}">Snippet</span>
+                    <span class="snippet-type">Snippet</span>
                   </div>
-                  <div class="${styles.snippetContent}">
+                  <div class="snippet-content">
                     ${snippet.content?.map((c: any) => {
                       if (c.type === 'text') {
                         return parseRST(c.content, articleTitle, `snippet-${snippetId}`);
@@ -453,6 +455,19 @@ const parseRST = (text: string, articleTitle: string, snippetId?: string): strin
                     }).join('') || ''}
                   </div>
                 `;
+                
+                // Apply CSS module classes
+                const header = tempDiv.querySelector('.snippet-header');
+                const headerType = tempDiv.querySelector('.snippet-type');
+                const content = tempDiv.querySelector('.snippet-content');
+                
+                if (header) header.className = styles.snippetHeader;
+                if (headerType) headerType.className = styles.snippetType;
+                if (content) content.className = styles.snippetContent;
+                
+                // Replace placeholder content
+                placeholder.innerHTML = '';
+                placeholder.appendChild(tempDiv.firstElementChild as Node);
               }
             } else {
               const placeholder = document.getElementById(`snippet-${snippetId}`);
@@ -471,18 +486,21 @@ const parseRST = (text: string, articleTitle: string, snippetId?: string): strin
           } catch (error) {
             console.error('Error loading snippet:', error);
             const placeholder = document.getElementById(`snippet-${snippetId}`);
-            if (placeholder) {
-              placeholder.innerHTML = `
-                <div class="${styles.snippetHeader}">
-                  <h3>Error loading snippet</h3>
-                  <span class="${styles.snippetType}">Error</span>
-                </div>
-                <div class="${styles.snippetContent}">
-                  <em>Error loading snippet: ${snippetId}</em>
-                </div>
-              `;
-            }
-          }
+                          if (placeholder) {
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = styles.snippetCard;
+                            errorDiv.innerHTML = `
+                              <div class="${styles.snippetHeader}">
+                                <h3>Error loading snippet</h3>
+                                <span class="${styles.snippetType}">Error</span>
+                              </div>
+                              <div class="${styles.snippetContent}">
+                                <em>Error loading snippet: ${snippetId}</em>
+                              </div>
+                            `;
+                            placeholder.innerHTML = '';
+                            placeholder.appendChild(errorDiv);
+                          }          }
         })();
       } else {
         // Handle other content types

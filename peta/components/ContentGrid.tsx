@@ -42,12 +42,30 @@ export default function ContentGrid({ items }: ContentGridProps) {
     }
   };
 
-  const handleSnippetClick = (item: ContentItem) => {
-    // Navigate to snippets page with the snippet selected
-    router.push({
-      pathname: '/snippets',
-      query: { snippet: item.id }
-    });
+  const handleItemClick = (item: ContentItem) => {
+    // Navigate to the appropriate page based on content type
+    let targetUrl = '';
+    
+    switch (item.type) {
+      case 'article':
+        targetUrl = `/articles?post=${item.id}`;
+        break;
+      case 'snippet':
+        targetUrl = `/snippets?snippet=${item.id}`;
+        break;
+      case 'book':
+        targetUrl = `/books?book=${item.id}`;
+        break;
+      case 'project':
+        targetUrl = `/projects?project=${item.id}`;
+        break;
+      default:
+        // Fallback for other types
+        targetUrl = `/${item.type}s/${item.id}`;
+    }
+    
+    // Navigate to the target URL
+    router.push(targetUrl);
   };
 
   return (
@@ -56,8 +74,8 @@ export default function ContentGrid({ items }: ContentGridProps) {
         <article 
           key={item.id} 
           className={styles.card}
-          onClick={() => item.type === 'snippet' ? handleSnippetClick(item) : undefined}
-          style={{ cursor: item.type === 'snippet' ? 'pointer' : 'default' }}
+          onClick={() => handleItemClick(item)}
+          style={{ cursor: 'pointer' }}
         >
           <div className={styles.cardContent}>
             <div className={styles.cardHeader}>
@@ -68,23 +86,9 @@ export default function ContentGrid({ items }: ContentGridProps) {
             </div>
             
             <h3 className={styles.title}>
-              {item.type === 'article' ? (
-                <Link href={`/articles?post=${item.id}`} className={styles.titleLink}>
-                  {item.title}
-                </Link>
-              ) : item.type === 'snippet' ? (
-                <span className={styles.titleLink}>
-                  {item.title}
-                </span>
-              ) : item.type === 'book' ? (
-                <Link href={`/books?book=${item.id}`} className={styles.titleLink}>
-                  {item.title}
-                </Link>
-              ) : (
-                <Link href={`/${item.type}s/${item.id}`} className={styles.titleLink}>
-                  {item.title}
-                </Link>
-              )}
+              <span className={styles.titleLink}>
+                {item.title}
+              </span>
             </h3>
             
             {item.tags && item.tags.length > 0 && (

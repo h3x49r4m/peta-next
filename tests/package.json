@@ -1,0 +1,19 @@
+{
+  "name": "peta-tests",
+  "version": "1.0.0",
+  "description": "Feature tests for Peta application",
+  "scripts": {
+    "test": "node simple-test.js && playwright test || echo 'Playwright not installed. Run npm install to install test dependencies.'",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:ui": "playwright test --ui",
+    "test:simple": "node simple-test.js",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0"
+  },
+  "dependencies": {
+    "playwright": "^1.57.0"
+  }
+}

@@ -17,7 +17,7 @@ export default function Snippet({ snippet }: SnippetProps) {
     return <div>Loading...</div>;
   }
 
-  if (!snippet) {
+  if (!snippet || !snippet.title) {
     return <div>Snippet not found</div>;
   }
 
@@ -177,18 +177,20 @@ export const getStaticPaths: GetStaticPaths = async () => {
     }
 
     const snippetsIndex = await fs.readJson(snippetsIndexPath);
-    const paths = snippetsIndex.items.map((item: any) => {
-      // Generate slug from title
-      const title = item.frontmatter?.title || 'untitled';
-      const slug = title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
-      
-      return {
-        params: { slug },
-      };
-    });
+    const paths = snippetsIndex.items
+      .filter((item: any) => item.frontmatter?.title) // Only include items with titles
+      .map((item: any) => {
+        // Generate slug from title
+        const title = item.frontmatter?.title;
+        const slug = title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '');
+        
+        return {
+          params: { slug },
+        };
+      });
 
     return {
       paths,
@@ -222,7 +224,8 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     // Find the snippet by matching slug with title
     const snippetsIndex = await fs.readJson(snippetsIndexPath);
     const snippetItem = snippetsIndex.items.find((item: any) => {
-      const title = item.frontmatter?.title || 'untitled';
+      if (!item.frontmatter?.title) return false;
+      const title = item.frontmatter.title;
       const itemSlug = title
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
