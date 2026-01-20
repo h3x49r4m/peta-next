@@ -4,6 +4,7 @@ import ContentList from '../../components/ContentList';
 import TableOfContents from '../../components/TableOfContents';
 import styles from '../../styles/Articles.module.css';
 import MathRenderer from '../../components/MathRenderer';
+import CodeBlock from '../../components/CodeBlock';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
@@ -116,8 +117,11 @@ export default function Articles() {
       const urlParams = new URLSearchParams(window.location.search);
       const postSlug = urlParams.get('post');
       if (postSlug && sortedPosts.length > 0) {
-        // Find the post by slug (title converted to slug)
+        // Find the post by ID or slug (title converted to slug)
         const post = sortedPosts.find(p => {
+          // First try to match by ID
+          if (p.id === postSlug) return true;
+          // Then try to match by title slug
           const titleSlug = p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
           return titleSlug === postSlug;
         });
@@ -340,117 +344,117 @@ const parseRST = (text: string, articleTitle: string, snippetId?: string): strin
     return result;
   };
 
-  const renderContent = async (content: any[], articleTitle: string) => {
-    const elements: string[] = [];
+  const ContentRenderer = ({ content, articleTitle }: { content: any[], articleTitle: string }) => {
+    const elements: JSX.Element[] = [];
     
     for (let i = 0; i < content.length; i++) {
       const item = content[i];
       
       if (item.type === 'text') {
         const htmlContent = parseRST(item.content, articleTitle);
-        elements.push(htmlContent);
+        elements.push(
+          <MathRenderer key={i} content={htmlContent} />
+        );
+      } else if (item.type === 'code-block') {
+        elements.push(
+          <CodeBlock 
+            key={i}
+            code={item.content}
+            language={item.language || 'text'}
+          />
+        );
       } else if (item.type === 'embedded-snippet') {
         // Render the embedded snippet directly
         const snippetTitle = item.title || item.id;
         const formattedTitle = snippetTitle.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
         
         const snippetId = item.id || `snippet-${i}`;
-        let snippetContent = `<div class="${styles.snippetCard}" id="${snippetId}">
-          <div class="${styles.snippetHeader}">
-            <h3>${formattedTitle}</h3>
-            <span class="${styles.snippetType}">Snippet</span>
+        elements.push(
+          <div key={i} className={styles.snippetCard} id={snippetId}>
+            <div className={styles.snippetHeader}>
+              <h3>{formattedTitle}</h3>
+              <span className={styles.snippetType}>Snippet</span>
+            </div>
+            <div className={styles.snippetContent}>
+              {item.content && Array.isArray(item.content) ? 
+                item.content.map((c: any, idx: number) => {
+                  if (c.type === 'text') {
+                    const htmlContent = parseRST(c.content, articleTitle, snippetId);
+                    return <MathRenderer key={idx} content={htmlContent} />;
+                  }
+                  return null;
+                }) : 
+                <em>No content available</em>
+              }
+            </div>
           </div>
-          <div class="${styles.snippetContent}">`;
-        
-        // Render the snippet content
-        if (item.content && Array.isArray(item.content)) {
-          item.content.forEach((c: any) => {
-            if (c.type === 'text') {
-              snippetContent += parseRST(c.content, articleTitle, snippetId);
-            }
-          });
-        }
-        
-        snippetContent += `</div></div>`;
-        elements.push(snippetContent);
+        );
       } else if (item.type === 'snippet-card-ref') {
         // Fallback for old format - Add a placeholder for the snippet with a proper title
         const snippetId = item.content;
         const snippetTitle = snippetId.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
         
-        elements.push(`<div class="${styles.snippetCard}" id="snippet-${snippetId}">
-          <div class="${styles.snippetHeader}">
-            <h3>Snippet: ${snippetTitle}</h3>
-            <span class="${styles.snippetType}">Snippet</span>
+        elements.push(
+          <div key={i} className={styles.snippetCard} id={`snippet-${snippetId}`}>
+            <div className={styles.snippetHeader}>
+              <h3>Snippet: {snippetTitle}</h3>
+              <span className={styles.snippetType}>Snippet</span>
+            </div>
+            <div className={styles.snippetContent}>
+              <em>Loading {snippetId}...</em>
+            </div>
           </div>
-          <div class="${styles.snippetContent}">
-            <em>Loading ${snippetId}...</em>
-          </div>
-        </div>`);
+        );
         
         // Load snippet content asynchronously
-        try {
-          const response = await fetch('/api/content/snippet');
-          const snippets = await response.json();
-          
-          // Debug: Log all snippets for inspection
-          console.log('Looking for snippet:', snippetId);
-          console.log('Available snippets:', snippets.map((s: any) => ({
-            id: s.id || 'no-id',
-            title: s.frontmatter?.title || s.title || 'no-title',
-            snippet_id: s.frontmatter?.snippet_id || 'no-snippet_id'
-          })));
-          
-          // Try multiple ways to find the snippet
-          let snippet = snippets.find((s: any) => {
-            // Check by id
-            if (s.id === snippetId) return true;
+        (async () => {
+          try {
+            const response = await fetch('/api/content/snippet');
+            const snippets = await response.json();
             
-            // Check by snippet_id
-            if (s.frontmatter?.snippet_id === snippetId) return true;
-            
-            // Check by title (exact match)
-            if (s.frontmatter?.title === snippetId) return true;
-            if (s.title === snippetId) return true;
-            
-            // Check by slugified title
-            const snippetSlug = (s.frontmatter?.title || s.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
-            if (snippetSlug === snippetId) return true;
-            
-            // Check partial match (for cases like "wave-function" matching "The Wave Function")
-            const snippetTitle = (s.frontmatter?.title || s.title || '').toLowerCase();
-            const searchTerm = snippetId.toLowerCase().replace(/-/g, ' ');
-            if (snippetTitle.includes(searchTerm) || searchTerm.includes(snippetTitle)) return true;
-            
-            return false;
-          });
-          
-          if (snippet) {
-            let snippetContent = `<div class="${styles.snippetCard}" id="snippet-${snippetId}">
-              <div class="${styles.snippetHeader}">
-                <h3>${snippet.frontmatter?.title || snippet.title}</h3>
-                <span class="${styles.snippetType}">Snippet</span>
-              </div>
-              <div class="${styles.snippetContent}">`;
-            
-            snippet.content?.forEach((c: any) => {
-              if (c.type === 'text') {
-                snippetContent += parseRST(c.content, articleTitle, `snippet-${snippetId}`);
-              }
+            // Try multiple ways to find the snippet
+            let snippet = snippets.find((s: any) => {
+              // Check by id
+              if (s.id === snippetId) return true;
+              
+              // Check by snippet_id
+              if (s.frontmatter?.snippet_id === snippetId) return true;
+              
+              // Check by title (exact match)
+              if (s.frontmatter?.title === snippetId) return true;
+              if (s.title === snippetId) return true;
+              
+              // Check by slugified title
+              const snippetSlug = (s.frontmatter?.title || s.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+              if (snippetSlug === snippetId) return true;
+              
+              // Check partial match (for cases like "wave-function" matching "The Wave Function")
+              const snippetTitle = (s.frontmatter?.title || s.title || '').toLowerCase();
+              const searchTerm = snippetId.toLowerCase().replace(/-/g, ' ');
+              if (snippetTitle.includes(searchTerm) || searchTerm.includes(snippetTitle)) return true;
+              
+              return false;
             });
             
-            snippetContent += `</div></div>`;
-            
-            // Replace the placeholder with the actual snippet
-            setTimeout(() => {
+            if (snippet) {
               const placeholder = document.getElementById(`snippet-${snippetId}`);
               if (placeholder) {
-                placeholder.outerHTML = snippetContent;
+                placeholder.innerHTML = `
+                  <div class="${styles.snippetHeader}">
+                    <h3>${snippet.frontmatter?.title || snippet.title}</h3>
+                    <span class="${styles.snippetType}">Snippet</span>
+                  </div>
+                  <div class="${styles.snippetContent}">
+                    ${snippet.content?.map((c: any) => {
+                      if (c.type === 'text') {
+                        return parseRST(c.content, articleTitle, `snippet-${snippetId}`);
+                      }
+                      return '';
+                    }).join('') || ''}
+                  </div>
+                `;
               }
-            }, 100);
-          } else {
-            // Replace placeholder with error message
-            setTimeout(() => {
+            } else {
               const placeholder = document.getElementById(`snippet-${snippetId}`);
               if (placeholder) {
                 placeholder.innerHTML = `
@@ -463,12 +467,9 @@ const parseRST = (text: string, articleTitle: string, snippetId?: string): strin
                   </div>
                 `;
               }
-            }, 100);
-          }
-        } catch (error) {
-          console.error('Error loading snippet:', error);
-          // Replace placeholder with error message
-          setTimeout(() => {
+            }
+          } catch (error) {
+            console.error('Error loading snippet:', error);
             const placeholder = document.getElementById(`snippet-${snippetId}`);
             if (placeholder) {
               placeholder.innerHTML = `
@@ -479,25 +480,32 @@ const parseRST = (text: string, articleTitle: string, snippetId?: string): strin
                 <div class="${styles.snippetContent}">
                   <em>Error loading snippet: ${snippetId}</em>
                 </div>
-                `;
+              `;
             }
-          }, 100);
-        }
+          }
+        })();
+      } else {
+        // Handle other content types
+        elements.push(
+          <div key={i} className={styles.unknownContent}>
+            <p>Unknown content type: {item.type}</p>
+            <pre>{JSON.stringify(item, null, 2)}</pre>
+          </div>
+        );
       }
     }
     
-    return elements.join('\n');
+    return <>{elements}</>;
   };
 
   useEffect(() => {
     if (selectedPost) {
-      renderContent(selectedPost.content, selectedPost.title).then(htmlContent => {
-        setRenderedContent(htmlContent);
-        // Show TOC immediately after content is set
-        setShowTOC(true);
-      });
+      // Show TOC immediately after post is selected
+      setShowTOC(true);
     }
   }, [selectedPost]);
+
+  
 
   console.log('Filtered posts:', filteredPosts);
 
@@ -566,7 +574,10 @@ const parseRST = (text: string, articleTitle: string, snippetId?: string): strin
                 </header>
                 
                 <div className={styles.articleContent}>
-                  <MathRenderer content={renderedContent} />
+                  <ContentRenderer 
+                    content={selectedPost.content} 
+                    articleTitle={selectedPost.title} 
+                  />
                 </div>
               </article>
             </main>

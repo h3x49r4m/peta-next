@@ -1,35 +1,110 @@
-/* Code block styles with Prism.js theme */
+/* Code block styles with One Dark Pro theme - elegant and readable */
 
 .codeBlock {
   margin: 1.5rem 0;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   overflow: hidden;
-  background-color: #1e1e1e;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background-color: #282c34;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #3e4451;
+  font-family: 'Fira Code', 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'Source Code Pro', monospace;
+}
+
+/* Prism.js base styles - applied to our pre and code elements */
+.pre {
+  color: #abb2bf;
+  background: none;
+  text-shadow: 0 1px rgba(0, 0, 0, 0.3);
+  font-family: 'Fira Code', 'Monaco', 'Consolas', 'Ubuntu Mono', monospace;
+  font-size: 1em;
+  text-align: left;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  word-wrap: normal;
+  line-height: 1.5;
+  -moz-tab-size: 4;
+  -o-tab-size: 4;
+  tab-size: 4;
+  -webkit-hyphens: none;
+  -moz-hyphens: none;
+  -ms-hyphens: none;
+  hyphens: none;
+  background: #282c34;
+  border-radius: 0.5em;
+  padding: 1em;
+  margin: 0.5em 0;
+  overflow: auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background-color: #21252b;
+  border-bottom: 1px solid #3e4451;
+}
+
+.language {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #abb2bf;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.copyButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  background-color: transparent;
+  color: #abb2bf;
+  border: 1px solid #3e4451;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.copyButton:hover {
+  background-color: #3e4451;
+  color: #61afef;
+}
+
+.copyButton:active {
+  transform: scale(0.95);
+}
+
+.icon {
+  width: 1rem;
+  height: 1rem;
 }
 
 .pre {
   margin: 0 !important;
   padding: 0 !important;
-  background-color: #1e1e1e !important;
+  background-color: #282c34 !important;
   overflow-x: auto;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'Source Code Pro', monospace;
+  font-family: 'Fira Code', 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'Source Code Pro', monospace;
   font-size: 0.875rem;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 /* Override Prism.js default styles */
 .codeBlock :global(pre[class*="language-"]) {
   margin: 0 !important;
   padding: 0 !important;
-  background-color: #1e1e1e !important;
-  color: #d4d4d4;
+  background-color: #282c34 !important;
+  color: #abb2bf;
   font-size: 0.875rem;
-  line-height: 1.5;
+  line-height: 1.6;
   border-radius: 0;
   border: none;
   box-shadow: none;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'Source Code Pro', monospace;
+  font-family: 'Fira Code', 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'Source Code Pro', monospace;
 }
 
 .codeBlock :global(code[class*="language-"]) {
@@ -47,45 +122,24 @@
   padding: 1rem 0;
 }
 
-.line {
-  display: flex;
-  min-height: 1.5em;
-  position: relative;
-}
 
-.lineNumber {
-  flex: 0 0 3.5rem;
-  text-align: right;
-  padding-right: 1rem;
-  color: #858585;
-  user-select: none;
-  display: inline-block;
-}
-
-.lineContent {
-  flex: 1;
-  white-space: pre;
-  min-width: 0;
-  display: inline-block;
-  line-height: 1.5;
-}
 
 .empty-line {
   display: inline-block;
-  height: 1.5em;
+  height: 1.6em;
 }
 
-/* Dark theme syntax highlighting */
+/* One Dark Pro theme syntax highlighting - elegant colors */
 .codeBlock :global(.token.comment),
 .codeBlock :global(.token.prolog),
 .codeBlock :global(.token.doctype),
 .codeBlock :global(.token.cdata) {
-  color: #6a9955 !important;
+  color: #5c6370 !important;
   font-style: italic;
 }
 
 .codeBlock :global(.token.punctuation) {
-  color: #d4d4d4 !important;
+  color: #abb2bf !important;
 }
 
 .codeBlock :global(.token.property),
@@ -95,7 +149,7 @@
 .codeBlock :global(.token.constant),
 .codeBlock :global(.token.symbol),
 .codeBlock :global(.token.deleted) {
-  color: #b5cea8 !important;
+  color: #d19a66 !important;
 }
 
 .codeBlock :global(.token.selector),
@@ -104,7 +158,7 @@
 .codeBlock :global(.token.char),
 .codeBlock :global(.token.builtin),
 .codeBlock :global(.token.inserted) {
-  color: #ce9178 !important;
+  color: #98c379 !important;
 }
 
 .codeBlock :global(.token.operator),
@@ -112,91 +166,183 @@
 .codeBlock :global(.token.url),
 .language-css :global(.token.string),
 .style :global(.token.string) {
-  color: #d4d4d4 !important;
+  color: #56b6c2 !important;
 }
 
 .codeBlock :global(.token.atrule),
 .codeBlock :global(.token.attr-value),
 .codeBlock :global(.token.keyword) {
-  color: #c586c0 !important;
+  color: #c678dd !important;
 }
 
 .codeBlock :global(.token.function),
 .codeBlock :global(.token.class-name) {
-  color: #dcdcaa !important;
+  color: #61afef !important;
 }
 
 .codeBlock :global(.token.regex),
 .codeBlock :global(.token.important),
 .codeBlock :global(.token.variable) {
-  color: #d16969 !important;
+  color: #e06c75 !important;
 }
 
-/* Language-specific overrides */
+/* Language-specific overrides for better syntax highlighting */
 .codeBlock :global(.language-python .token.keyword) {
-  color: #569cd6 !important;
+  color: #c678dd !important;
 }
 
 .codeBlock :global(.language-python .token.string) {
-  color: #ce9178 !important;
+  color: #98c379 !important;
 }
 
 .codeBlock :global(.language-python .token.function) {
-  color: #dcdcaa !important;
+  color: #61afef !important;
 }
 
 .codeBlock :global(.language-python .token.number) {
-  color: #b5cea8 !important;
+  color: #d19a66 !important;
+}
+
+.codeBlock :global(.language-python .token.operator) {
+  color: #56b6c2 !important;
 }
 
 .codeBlock :global(.language-javascript .token.keyword),
 .codeBlock :global(.language-typescript .token.keyword),
 .codeBlock :global(.language-jsx .token.keyword),
 .codeBlock :global(.language-tsx .token.keyword) {
-  color: #569cd6 !important;
+  color: #c678dd !important;
 }
 
 .codeBlock :global(.language-javascript .token.function),
 .codeBlock :global(.language-typescript .token.function),
 .codeBlock :global(.language-jsx .token.function),
 .codeBlock :global(.language-tsx .token.function) {
-  color: #dcdcaa !important;
+  color: #61afef !important;
+}
+
+.codeBlock :global(.language-javascript .token.string),
+.codeBlock :global(.language-typescript .token.string),
+.codeBlock :global(.language-jsx .token.string),
+.codeBlock :global(.language-tsx .token.string) {
+  color: #98c379 !important;
+}
+
+.codeBlock :global(.language-typescript .token.class-name),
+.codeBlock :global(.language-tsx .token.class-name) {
+  color: #e5c07b !important;
 }
 
 .codeBlock :global(.language-bash .token.builtin) {
-  color: #569cd6 !important;
+  color: #61afef !important;
+}
+
+.codeBlock :global(.language-bash .token.function) {
+  color: #98c379 !important;
 }
 
 .codeBlock :global(.language-json .token.property) {
-  color: #9cdcfe !important;
+  color: #e06c75 !important;
 }
 
 .codeBlock :global(.language-json .token.string) {
-  color: #ce9178 !important;
+  color: #98c379 !important;
 }
 
 .codeBlock :global(.language-css .token.selector) {
-  color: #d7ba7d !important;
+  color: #e06c75 !important;
 }
 
 .codeBlock :global(.language-css .token.property) {
-  color: #9cdcfe !important;
+  color: #61afef !important;
+}
+
+.codeBlock :global(.language-css .token.string) {
+  color: #98c379 !important;
 }
 
 .codeBlock :global(.language-rust .token.keyword) {
-  color: #c586c0 !important;
+  color: #c678dd !important;
 }
 
 .codeBlock :global(.language-rust .token.function) {
-  color: #dcdcaa !important;
+  color: #61afef !important;
+}
+
+.codeBlock :global(.language-rust .token.type) {
+  color: #e5c07b !important;
+}
+
+.codeBlock :global(.language-rust .token.string) {
+  color: #98c379 !important;
 }
 
 .codeBlock :global(.language-go .token.keyword) {
-  color: #569cd6 !important;
+  color: #c678dd !important;
 }
 
 .codeBlock :global(.language-go .token.function) {
-  color: #dcdcaa !important;
+  color: #61afef !important;
+}
+
+.codeBlock :global(.language-go .token.type) {
+  color: #e5c07b !important;
+}
+
+.codeBlock :global(.language-cpp .token.keyword) {
+  color: #c678dd !important;
+}
+
+.codeBlock :global(.language-cpp .token.function) {
+  color: #61afef !important;
+}
+
+.codeBlock :global(.language-cpp .token.class-name) {
+  color: #e5c07b !important;
+}
+
+.codeBlock :global(.language-cpp .token.string) {
+  color: #98c379 !important;
+}
+
+.codeBlock :global(.language-cpp .token.number) {
+  color: #d19a66 !important;
+}
+
+.codeBlock :global(.language-sql .token.keyword) {
+  color: #c678dd !important;
+}
+
+.codeBlock :global(.language-sql .token.operator) {
+  color: #56b6c2 !important;
+}
+
+.codeBlock :global(.language-sql .token.string) {
+  color: #98c379 !important;
+}
+
+.codeBlock :global(.language-sql .token.number) {
+  color: #d19a66 !important;
+}
+
+.codeBlock :global(.language-sql .token.function) {
+  color: #61afef !important;
+}
+
+.codeBlock :global(.language-yaml .token.attr-name) {
+  color: #61afef !important;
+}
+
+.codeBlock :global(.language-yaml .token.string) {
+  color: #98c379 !important;
+}
+
+.codeBlock :global(.language-docker .token.keyword) {
+  color: #c678dd !important;
+}
+
+.codeBlock :global(.language-docker .token.string) {
+  color: #98c379 !important;
 }
 
 /* Scrollbar styling */
@@ -205,14 +351,36 @@
 }
 
 .codeBlock :global(pre::-webkit-scrollbar-track) {
-  background: #1e1e1e;
+  background: #282c34;
 }
 
 .codeBlock :global(pre::-webkit-scrollbar-thumb) {
-  background: #424242;
+  background: #3e4451;
   border-radius: 4px;
 }
 
 .codeBlock :global(pre::-webkit-scrollbar-thumb:hover) {
-  background: #4f4f4f;
+  background: #4f545f;
+}
+
+/* Enhanced readability */
+.codeBlock :global(.token.keyword) {
+  font-weight: 600;
+}
+
+.codeBlock :global(.token.function) {
+  font-weight: 500;
+}
+
+.codeBlock :global(.token.string) {
+  font-weight: 400;
+}
+
+.codeBlock :global(.token.number) {
+  font-weight: 500;
+}
+
+.codeBlock :global(.token.comment) {
+  font-style: italic;
+  opacity: 0.8;
 }

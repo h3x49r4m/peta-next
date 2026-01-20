@@ -8,6 +8,12 @@ import MathRenderer from '../../components/MathRenderer';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
+interface BookSection {
+  id: string;
+  title: string;
+  content: any[];
+}
+
 interface Book {
   id: string;
   title: string;
@@ -16,7 +22,8 @@ interface Book {
   date: string;
   tags: string[];
   coverImage?: string;
-  sections?: any[];
+  sections?: BookSection[];
+  content?: any[];
 }
 
 export default function Books() {
@@ -42,8 +49,8 @@ export default function Books() {
       console.log('Found book ID in URL:', bookId);
       // Load books first, then select the book
       loadBooksContent().then((booksData) => {
-        console.log('Loaded books:', booksData.map(b => b.id));
-        const book = booksData.find(b => b.id === bookId);
+        console.log('Loaded books:', booksData.map((b: any) => b.id));
+        const book = booksData.find((b: any) => b.id === bookId);
         console.log('Found matching book:', book);
         if (book) {
           console.log('Setting selected book:', book.title);
@@ -55,6 +62,8 @@ export default function Books() {
       });
     }
   }, []);
+
+  
 
   useEffect(() => {
     // Reset selected book only when navigating to the main books page without parameters
@@ -205,6 +214,8 @@ useEffect(() => {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  
 
   const parseSimpleTable = (lines: string[], startIndex: number): { html: string; nextIndex: number } => {
     const tableLines: string[] = [];
@@ -647,7 +658,10 @@ useEffect(() => {
           <aside className={styles.tocAside}>
             {showTOC && selectedBook && (
               <BookTOC 
-                book={selectedBook} 
+                book={{
+                  ...selectedBook,
+                  sections: selectedBook.sections || []
+                }} 
               />
             )}
           </aside>
@@ -700,7 +714,7 @@ useEffect(() => {
                       } else if (item.type === 'code-block') {
                         return (
                           <CodeBlock 
-                            key={index} 
+                            key={index}
                             code={item.content}
                             language={item.language || 'text'}
                           />
@@ -742,7 +756,7 @@ useEffect(() => {
                           } else if (item.type === 'code-block') {
                             return (
                               <CodeBlock 
-                                key={index} 
+                                key={index}
                                 code={item.content}
                                 language={item.language || 'text'}
                               />

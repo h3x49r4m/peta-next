@@ -4,6 +4,7 @@ import path from 'path';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import MathRenderer from '../../components/MathRenderer';
+import CodeBlock from '../../components/CodeBlock';
 
 interface SnippetProps {
   snippet: any;
@@ -48,6 +49,14 @@ export default function Snippet({ snippet }: SnippetProps) {
           <MathRenderer 
             key={index} 
             content={`<p>${htmlContent}</p>`}
+          />
+        );
+      } else if (item.type === 'code-block') {
+        return (
+          <CodeBlock 
+            key={index}
+            code={item.content}
+            language={item.language || 'text'}
           />
         );
       }

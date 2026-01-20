@@ -111,19 +111,25 @@ export default function TableOfContents({ content, postTitle }: TableOfContentsP
 
         } else if (item.type === 'embedded-snippet') {
 
-          // Add snippet as a heading
+                  // Add snippet as a heading
 
-          
+                  
 
-                    const snippetTitle = item.title || item.id;
+        
 
-          
+                            const snippetTitle = item.title || item.id;
 
-                    const formattedTitle = snippetTitle.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+                  
 
-          
+        
 
-                    const snippetId = item.id || `snippet-${index}`;
+                            const formattedTitle = snippetTitle.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+
+                  
+
+        
+
+                            const snippetId = item.id || `snippet-${Date.now()}`;
 
           
 
@@ -712,7 +718,7 @@ export default function TableOfContents({ content, postTitle }: TableOfContentsP
         
         // If it's a snippet, determine if it should be nested
         if (heading.title.includes('Snippet:')) {
-          let parentHeading = null;
+          let parentHeading: TOCItem | null = null;
           let shouldNest = false;
           
           // Only nest if snippet appears AFTER a heading (not before)
@@ -730,9 +736,9 @@ export default function TableOfContents({ content, postTitle }: TableOfContentsP
           }
           
           // If snippet appears before any heading, it's standalone
-          if (shouldNest && parentHeading) {
+          if (shouldNest && parentHeading !== null) {
             // Find or create parent in result
-            let parentInResult = result.find(item => item.id === parentHeading.id);
+            let parentInResult = result.find(item => item.id === parentHeading!.id);
             
             if (!parentInResult) {
               parentInResult = {

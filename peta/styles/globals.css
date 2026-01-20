@@ -174,7 +174,7 @@ textarea:focus {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-/* Code blocks */
+/* Inline code - keep basic styling for inline code */
 code {
   font-family: var(--font-family-mono);
   font-size: 0.875em;
@@ -183,69 +183,37 @@ code {
   border-radius: var(--radius-sm);
 }
 
-pre {
-  font-family: var(--font-family-mono);
-  font-size: 0.875em;
-  background-color: var(--surface-color);
-  padding: var(--spacing-4);
-  border-radius: var(--radius-md);
-  overflow-x: auto;
-  margin: 0 0 var(--spacing-4) 0;
-}
-
-pre code {
-  background-color: transparent;
-  padding: 0;
-}
-
-/* Blockquotes */
-blockquote {
-  margin: 0 0 var(--spacing-4) 0;
-  padding: var(--spacing-4) var(--spacing-6);
-  border-left: 4px solid var(--primary-color);
-  background-color: var(--surface-color);
-  font-style: italic;
-}
-
-/* Tables */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 0 0 var(--spacing-4) 0;
-}
-
-th,
-td {
-  padding: var(--spacing-3) var(--spacing-4);
-  text-align: left;
-  border-bottom: 1px solid var(--border-color);
-}
-
-th {
-  font-weight: 600;
-  background-color: var(--surface-color);
-}
-
-/* Math styling */
-.math-inline {
-  display: inline;
-  margin: 0;
-}
-
-.math-block {
-  display: block;
-  margin: var(--spacing-4) 0;
-  text-align: center;
-  overflow-x: auto;
-  padding: var(--spacing-2) 0;
-}
-
-.math-error {
-  color: var(--error-color);
-  font-style: italic;
-}
-
 /* Utility classes */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-4);
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.hidden {
+  display: none;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -255,45 +223,76 @@ th {
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
-  border-width: 0;
+  border: 0;
 }
 
-.visually-hidden {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  padding: 0 !important;
-  margin: -1px !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  white-space: nowrap !important;
-  border-width: 0 !important;
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-/* Loading state */
-.loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: var(--spacing-8);
-  color: var(--text-secondary);
+::-webkit-scrollbar-track {
+  background: var(--surface-color);
 }
 
-/* Responsive typography */
-@media (max-width: 768px) {
-  html {
-    font-size: 14px;
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Focus styles */
+.focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  * {
+    background: transparent !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
   }
   
-  h1 {
-    font-size: 2rem;
+  a,
+  a:visited {
+    text-decoration: underline;
   }
   
-  h2 {
-    font-size: 1.75rem;
+  pre,
+  blockquote {
+    border: 1px solid #999;
+    page-break-inside: avoid;
   }
   
+  thead {
+    display: table-header-group;
+  }
+  
+  tr,
+  img {
+    page-break-inside: avoid;
+  }
+  
+  img {
+    max-width: 100% !important;
+  }
+  
+  p,
+  h2,
   h3 {
-    font-size: 1.375rem;
+    orphans: 3;
+    widows: 3;
+  }
+  
+  h2,
+  h3 {
+    page-break-after: avoid;
   }
 }

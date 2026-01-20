@@ -4,6 +4,7 @@ import path from 'path';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import MathRenderer from '../../components/MathRenderer';
+import CodeBlock from '../../components/CodeBlock';
 import { useEffect } from 'react';
 
 interface ProjectProps {
@@ -24,6 +25,8 @@ export default function Project({ project }: ProjectProps) {
       router.replace(`/projects?project=${slug}`);
     }
   }, [router.isFallback, project, router]);
+
+  
 
   if (router.isFallback) {
     return <div>Loading...</div>;
@@ -47,7 +50,11 @@ export default function Project({ project }: ProjectProps) {
   };
 
   const renderContent = (content: any[]) => {
-    return content.map((item, index) => {
+    const elements: JSX.Element[] = [];
+    
+    for (let i = 0; i < content.length; i++) {
+      const item = content[i];
+      
       if (item.type === 'text') {
         // Convert RST-style text to HTML, preserving math formulas
         const htmlContent = item.content
@@ -57,15 +64,24 @@ export default function Project({ project }: ProjectProps) {
           .replace(/\n\n/g, '</p><p>') // Paragraph breaks
           .replace(/\n/g, '<br />'); // Line breaks
         
-        return (
+        elements.push(
           <MathRenderer 
-            key={index} 
+            key={i} 
             content={`<p>${htmlContent}</p>`}
           />
         );
+      } else if (item.type === 'code-block') {
+        elements.push(
+          <CodeBlock 
+            key={i}
+            code={item.content}
+            language={item.language || 'text'}
+          />
+        );
       }
-      return null;
-    });
+    }
+    
+    return elements;
   };
 
   return (

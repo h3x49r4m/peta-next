@@ -4,6 +4,7 @@ import path from 'path';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import MathRenderer from '../../components/MathRenderer';
+import CodeBlock from '../../components/CodeBlock';
 import { useState, useEffect } from 'react';
 import styles from '../../styles/Articles.module.css';
 
@@ -39,6 +40,19 @@ export default function Book({ book }: BookProps) {
     }
   }, [router.isFallback, book, router]);
 
+  // Highlight code blocks when book is loaded
+  useEffect(() => {
+    if (book) {
+      setTimeout(() => {
+        if (typeof window !== 'undefined' && window.highlightCodeBlocks) {
+          window.highlightCodeBlocks();
+        }
+      }, 100);
+    }
+  }, [book]);
+
+  
+
   if (router.isFallback) {
     return <div>Loading...</div>;
   }
@@ -61,7 +75,11 @@ export default function Book({ book }: BookProps) {
   };
 
   const renderContent = (content: any[]) => {
-    return content.map((item, index) => {
+    const elements: JSX.Element[] = [];
+    
+    for (let i = 0; i < content.length; i++) {
+      const item = content[i];
+      
       if (item.type === 'text') {
         // Convert RST-style text to HTML, preserving math formulas
         const htmlContent = item.content
@@ -71,15 +89,24 @@ export default function Book({ book }: BookProps) {
           .replace(/\n\n/g, '</p><p>') // Paragraph breaks
           .replace(/\n/g, '<br />'); // Line breaks
         
-        return (
+        elements.push(
           <MathRenderer 
-            key={index} 
+            key={i} 
             content={`<p>${htmlContent}</p>`}
           />
         );
+      } else if (item.type === 'code-block') {
+        elements.push(
+          <CodeBlock 
+            key={i}
+            code={item.content}
+            language={item.language || 'text'}
+          />
+        );
       }
-      return null;
-    });
+    }
+    
+    return elements;
   };
 
   const BookTableOfContents = () => {
@@ -239,9 +266,11 @@ export const getStaticPaths: GetStaticPaths = async () => {
     }
 
     const booksIndex = await fs.readJson(booksIndexPath);
-    const paths = booksIndex.items.map((book: any) => ({
-      params: { slug: book.id },
-    }));
+    const paths = booksIndex.items
+      .filter((book: any) => book.id) // Filter out any items without id
+      .map((book: any) => ({
+        params: { slug: book.id },
+      }));
 
     return {
       paths,

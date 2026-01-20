@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
+import { Highlight, themes } from 'prism-react-renderer';
 import styles from '../styles/CodeBlock.module.css';
 
 interface CodeBlockProps {
@@ -7,91 +8,65 @@ interface CodeBlockProps {
 }
 
 export default function CodeBlock({ code, language }: CodeBlockProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [Prism, setPrism] = useState<any>(null);
-  const [highlightedCode, setHighlightedCode] = useState<string>('');
+  const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    // Dynamically import Prism and required languages
-    const loadPrism = async () => {
-      const PrismModule = await import('prismjs');
-      const Prism = PrismModule.default;
-      
-      // Load core languages first
-      await import('prismjs/components/prism-clike');
-      await import('prismjs/components/prism-javascript');
-      
-      // Load other languages as needed
-      const languageMap: { [key: string]: Promise<any> } = {
-        python: () => import('prismjs/components/prism-python'),
-        typescript: () => import('prismjs/components/prism-typescript'),
-        tsx: () => import('prismjs/components/prism-tsx'),
-        jsx: () => import('prismjs/components/prism-jsx'),
-        bash: () => import('prismjs/components/prism-bash'),
-        json: () => import('prismjs/components/prism-json'),
-        markdown: () => import('prismjs/components/prism-markdown'),
-        css: () => import('prismjs/components/prism-css'),
-        scss: () => import('prismjs/components/prism-scss'),
-        rust: () => import('prismjs/components/prism-rust'),
-        go: () => import('prismjs/components/prism-go'),
-        java: () => import('prismjs/components/prism-java'),
-        cpp: () => import('prismjs/components/prism-cpp'),
-        sql: () => import('prismjs/components/prism-sql'),
-        yaml: () => import('prismjs/components/prism-yaml'),
-        docker: () => import('prismjs/components/prism-docker'),
-        nginx: () => import('prismjs/components/prism-nginx'),
-      };
-      
-      const normalizedLanguage = language.toLowerCase().replace(/^language-/, '');
-      if (languageMap[normalizedLanguage]) {
-        await languageMap[normalizedLanguage]();
-      }
-      
-      setPrism(Prism);
-    };
-    
-    loadPrism();
-  }, [language]);
-
-  useEffect(() => {
-    if (Prism && code) {
-      // Don't clean the code - use it as-is to preserve indentation
-      const processedCode = code;
-      
-      // Create a temporary element to highlight the code
-      const tempElement = document.createElement('code');
-      tempElement.className = `language-${language.toLowerCase().replace(/^language-/, '')}`;
-      tempElement.textContent = processedCode;
-      
-      // Apply highlighting
-      Prism.highlightElement(tempElement);
-      
-      // Get the highlighted HTML and split into lines
-      const highlightedHTML = tempElement.innerHTML;
-      const lines = highlightedHTML.split('\n');
-      
-      // Add line numbers to each line
-      const linesWithNumbers = lines.map((line, index) => {
-        const lineNumber = index + 1;
-        // Use the line as-is, even if empty
-        return `<div class="${styles.line}">
-          <span class="${styles.lineNumber}">${lineNumber}</span>
-          <span class="${styles.lineContent}">${line || ' '}</span>
-        </div>`;
-      }).join('');
-      
-      setHighlightedCode(linesWithNumbers);
+  const handleCopy = async () => {
+    try {
+      // Get the original code without highlighting
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000); // Reset after 2 seconds
+    } catch (err) {
+      console.error('Failed to copy code:', err);
     }
-  }, [code, Prism, language]);
+  };
 
   return (
     <div className={styles.codeBlock}>
-      <pre className={styles.pre}>
-        <code 
-          className={`language-${language.toLowerCase().replace(/^language-/, '')}`}
-          dangerouslySetInnerHTML={{ __html: highlightedCode }}
-        />
-      </pre>
+      <div className={styles.header}>
+        <span className={styles.language}>{language}</span>
+        <button 
+          className={styles.copyButton}
+          onClick={handleCopy}
+          aria-label="Copy code"
+        >
+          {copied ? (
+            <>
+              <svg className={styles.icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              Copied!
+            </>
+          ) : (
+            <>
+              <svg className={styles.icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy
+            </>
+          )}
+        </button>
+      </div>
+      <Highlight
+        theme={themes.oneDark}
+        code={code}
+        language={language.toLowerCase().replace(/^language-/, '')}
+      >
+        {({ className, style, tokens, getLineProps, getTokenProps }) => (
+          <pre className={styles.pre} style={style}>
+            <code className={className}>
+              {tokens.map((line, i) => (
+                <div key={i} {...getLineProps({ line })}>
+                  {line.map((token, key) => (
+                    <span key={key} {...getTokenProps({ token })} />
+                  ))}
+                </div>
+              ))}
+            </code>
+          </pre>
+        )}
+      </Highlight>
     </div>
   );
 }
