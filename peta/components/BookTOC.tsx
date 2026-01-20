@@ -527,7 +527,7 @@ export default function BookTOC({ book, snippets = [], snippetsLoading = false, 
                     </div>
                     
                     {/* Show headers and their snippets within the section */}
-                    {isDetailsExpanded && expandedSections.has(section.id) && sectionHeaders.length > 0 && (
+                    {(isDetailsExpanded || expandedSections.has(section.id)) && sectionHeaders.length > 0 && (
                       <ul className={styles.headerList}>
                         {sectionHeaders.map((header) => {
                           // Find snippets that belong to this header
@@ -624,7 +624,7 @@ export default function BookTOC({ book, snippets = [], snippetsLoading = false, 
                     )}
                     
                     {/* Show snippets that are not under any header */}
-                    {isDetailsExpanded && expandedSections.has(section.id) && (() => {
+                    {(isDetailsExpanded || expandedSections.has(section.id)) && (() => {
                       const standaloneSnippets = sectionSnippets.filter(s => !s.header);
                       if (standaloneSnippets.length === 0) return null;
                       
