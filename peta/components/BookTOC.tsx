@@ -487,25 +487,28 @@ export default function BookTOC({ book, snippets = [], snippetsLoading = false, 
               const sectionSnippets = allSnippets.filter(s => s.sectionId === section.id);
               const sectionHeaders = getSectionHeaders(section);
               const isCurrentSection = section.id === currentSectionId || (!currentSectionId && section.id === 'index');
+              const hasSubContent = sectionHeaders.length > 0 || sectionSnippets.length > 0;
               
               return (
                 <li key={section.id}>
                   <div className={styles.sectionGroup}>
                     <div className={styles.sectionHeader}>
-                      <button 
-                        className={`${styles.sectionToggle}`}
-                        onClick={() => {
-                          const newExpanded = new Set(expandedSections);
-                          if (newExpanded.has(section.id)) {
-                            newExpanded.delete(section.id);
-                          } else {
-                            newExpanded.add(section.id);
-                          }
-                          setExpandedSections(newExpanded);
-                        }}
-                      >
-                        {expandedSections.has(section.id) ? '-' : '+'}
-                      </button>
+                      {hasSubContent && (
+                        <button 
+                          className={`${styles.sectionToggle}`}
+                          onClick={() => {
+                            const newExpanded = new Set(expandedSections);
+                            if (newExpanded.has(section.id)) {
+                              newExpanded.delete(section.id);
+                            } else {
+                              newExpanded.add(section.id);
+                            }
+                            setExpandedSections(newExpanded);
+                          }}
+                        >
+                          {expandedSections.has(section.id) ? '-' : '+'}
+                        </button>
+                      )}
                       <a 
                         href={`#section-${section.id}`}
                         className={`${styles.tocLink} ${styles.sectionLink} ${isCurrentSection ? styles.active : ''}`}

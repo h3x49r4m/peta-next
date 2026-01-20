@@ -8,12 +8,13 @@
   z-index: 999;
   transition: all 0.3s ease;
   font-size: 0.875rem;
+  padding: var(--spacing-8);
 }
 
 .bookTOC.expanded {
   width: auto;
-  min-width: 250px;
-  max-width: 400px;
+  min-width: 350px;
+  max-width: 500px;
   height: fit-content;
   max-height: calc(100vh - 120px);
 }
@@ -267,7 +268,7 @@
 
 
 
-  background: transparent;
+  background: var(--primary-color);
 
 
 
@@ -275,7 +276,7 @@
 
 
 
-  color: #3b82f6;
+  color: white;
 
 
 
@@ -284,6 +285,14 @@
 
 
   border: none;
+
+
+
+
+
+
+
+  border-radius: 50%;
 
 
 
@@ -387,7 +396,7 @@
 
 
 
-  color: #2563eb;
+  background: var(--primary-hover);
 
 
 
@@ -423,7 +432,7 @@
 
 
 
-  font-size: 1.1rem;
+  font-size: 1.3rem;
 
 
 
@@ -456,9 +465,10 @@
 
 .navButton {
   padding: 0;
-  background: transparent;
-  color: #3b82f6;
+  background: var(--primary-color);
+  color: white;
   border: none;
+  border-radius: 50%;
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
@@ -471,7 +481,7 @@
 }
 
 .navButton:hover:not(:disabled) {
-  color: #2563eb;
+  background: var(--primary-hover);
 }
 
 .navButton:disabled {
