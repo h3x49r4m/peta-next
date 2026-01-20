@@ -30,7 +30,6 @@ Machine learning is a subset of artificial intelligence that enables systems to 
 Key Concepts
 ------------
 
-.. snippet-card:: python-data-processing
 
 Before diving into machine learning, it's essential to understand data processing. The following snippet demonstrates how to prepare and preprocess data for ML models.
 

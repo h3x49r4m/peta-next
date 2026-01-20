@@ -288,22 +288,39 @@ export default function BookTOC({ book, snippets = [], snippetsLoading = false, 
     setTimeout(tryScroll, 50);
   };
 
-  // Extract snippets from all sections (without duplicates)
+  // Extract snippets from all sections (with proper header tracking)
   const getAllSnippets = () => {
     const allSnippets: any[] = [];
-    const seenSnippets = new Set<string>();
     
     book.sections.forEach(section => {
       if (section.content) {
+        // Track the current header while scanning content
+        let currentHeader = null;
+        
         section.content.forEach(item => {
-          if (item.type === 'snippet-card-ref') {
-            const snippetId = item.content;
-            
-            // Skip if we've already added this snippet
-            if (seenSnippets.has(snippetId)) {
-              return;
+          // Check if this is a header (text block that looks like a header)
+          if (item.type === 'text' && item.content) {
+            const lines = item.content.split('\n');
+            // Process all lines in the text block to find headers
+            for (let j = 0; j < lines.length - 1; j++) {
+              const line = lines[j];
+              const nextLine = lines[j + 1];
+              
+              if (nextLine && (nextLine.startsWith('-') || nextLine.startsWith('~')) && 
+                  nextLine.trim().length > 0) {
+                const underlineChar = nextLine.trim()[0];
+                if (nextLine.trim() === underlineChar.repeat(nextLine.trim().length)) {
+                  // This is a header - update currentHeader
+                  currentHeader = {
+                    text: line.trim(),
+                    level: underlineChar === '-' ? 2 : 3,
+                    id: `${section.id}-${line.trim().toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-')}`
+                  };
+                }
+              }
             }
-            seenSnippets.add(snippetId);
+          } else if (item.type === 'snippet-card-ref') {
+            const snippetId = item.content;
             
             // Find the actual snippet
             const snippet = snippets.find((s: any) => {
@@ -325,30 +342,27 @@ export default function BookTOC({ book, snippets = [], snippetsLoading = false, 
             // Use the actual snippet title if available
             const snippetTitle = snippet?.frontmatter?.title || snippet?.title || snippetId.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
             
+            // Add the snippet (allow duplicates)
             allSnippets.push({
               id: snippetId,
               title: `Snippet: ${snippet ? (snippet.frontmatter?.title || snippet.title) : snippetTitle}`,
               sectionId: section.id,
               sectionTitle: section.title,
+              header: currentHeader,
               children: [] // No subheaders
             });
           } else if (item.type === 'embedded-snippet') {
-            const snippetId = item.id || `snippet-${Date.now()}`;
-            
-            // Skip if we've already added this snippet
-            if (seenSnippets.has(snippetId)) {
-              return;
-            }
-            seenSnippets.add(snippetId);
-            
             const snippetTitle = item.title || item.id;
             const formattedTitle = snippetTitle.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+            const snippetId = item.id || `snippet-${Date.now()}`;
             
+            // Add the embedded snippet (allow duplicates)
             allSnippets.push({
               id: snippetId,
               title: formattedTitle,
               sectionId: section.id,
               sectionTitle: section.title,
+              header: currentHeader, // Add header information
               children: [] // No subheaders
             });
           }
@@ -443,7 +457,8 @@ export default function BookTOC({ book, snippets = [], snippetsLoading = false, 
           </div>
           <ul className={styles.tocList}>
             {book.sections.map((section) => {
-              const sectionSnippets = getAllSnippets().filter(s => s.sectionId === section.id);
+              const allSnippets = getAllSnippets();
+              const sectionSnippets = allSnippets.filter(s => s.sectionId === section.id);
               const sectionHeaders = getSectionHeaders(section);
               const isCurrentSection = section.id === currentSectionId || (!currentSectionId && section.id === 'index');
               
@@ -466,92 +481,131 @@ export default function BookTOC({ book, snippets = [], snippetsLoading = false, 
                       {section.title}
                     </a>
                     
-                    {/* Show headers within the section */}
+                    {/* Show headers and their snippets within the section */}
                     {sectionHeaders.length > 0 && (
                       <ul className={styles.headerList}>
-                        {sectionHeaders.map((header) => (
-                          <li key={header.id} className={styles.headerItem} style={{ marginLeft: `${(header.level - 1) * 16}px` }}>
-                            <a 
-                              href={`#${header.id}`}
-                              className={`${styles.tocLink} ${styles.headerLink} ${activeId === header.id ? styles.active : ''}`}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                window.history.pushState(null, '', `#${header.id}`);
-                                
-                                // Always ensure we're in the correct section first
-                                if (section.id !== currentSectionId) {
-                                  // Switch to the section containing this header first
-                                  if (onSectionSelect) {
-                                    onSectionSelect(section.id);
-                                  }
-                                  // Wait for section to load and render
-                                  setTimeout(() => {
-                                    // Try multiple times as MathRenderer might need time
-                                    let attempts = 0;
-                                    const maxAttempts = 10;
-                                    const tryScroll = () => {
-                                      attempts++;
-                                      const element = document.getElementById(header.id);
-                                      if (element) {
-                                        const offset = 100;
-                                        const elementPosition = element.getBoundingClientRect().top;
-                                        const offsetPosition = elementPosition + window.pageYOffset - offset;
-                                        window.scrollTo({
-                                          top: offsetPosition,
-                                          behavior: 'smooth'
-                                        });
-                                      } else if (attempts < maxAttempts) {
-                                        setTimeout(tryScroll, 100);
+                        {sectionHeaders.map((header) => {
+                          // Find snippets that belong to this header
+                          const headerSnippets = sectionSnippets.filter(s => 
+                            s.header && s.header.id === header.id
+                          );
+                          
+                          return (
+                            <li key={header.id}>
+                              <div className={styles.headerItem} style={{ marginLeft: `${(header.level - 1) * 16}px` }}>
+                                <a 
+                                  href={`#${header.id}`}
+                                  className={`${styles.tocLink} ${styles.headerLink} ${activeId === header.id ? styles.active : ''}`}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    window.history.pushState(null, '', `#${header.id}`);
+                                    
+                                    // Always ensure we're in the correct section first
+                                    if (section.id !== currentSectionId) {
+                                      // Switch to the section containing this header first
+                                      if (onSectionSelect) {
+                                        onSectionSelect(section.id);
                                       }
-                                    };
-                                    tryScroll();
-                                  }, 500);
-                                } else {
-                                  // Header is in current section, but still wait for potential rendering
-                                  setTimeout(() => {
-                                    const element = document.getElementById(header.id);
-                                    if (element) {
-                                      const offset = 100;
-                                      const elementPosition = element.getBoundingClientRect().top;
-                                      const offsetPosition = elementPosition + window.pageYOffset - offset;
-                                      window.scrollTo({
-                                        top: offsetPosition,
-                                        behavior: 'smooth'
-                                      });
+                                      // Wait for section to load and render
+                                      setTimeout(() => {
+                                        // Try multiple times as MathRenderer might need time
+                                        let attempts = 0;
+                                        const maxAttempts = 10;
+                                        const tryScroll = () => {
+                                          attempts++;
+                                          const element = document.getElementById(header.id);
+                                          if (element) {
+                                            const offset = 100;
+                                            const elementPosition = element.getBoundingClientRect().top;
+                                            const offsetPosition = elementPosition + window.pageYOffset - offset;
+                                            window.scrollTo({
+                                              top: offsetPosition,
+                                              behavior: 'smooth'
+                                            });
+                                          } else if (attempts < maxAttempts) {
+                                            setTimeout(tryScroll, 100);
+                                          }
+                                        };
+                                        tryScroll();
+                                      }, 500);
+                                    } else {
+                                      // Header is in current section, but still wait for potential rendering
+                                      setTimeout(() => {
+                                        const element = document.getElementById(header.id);
+                                        if (element) {
+                                          const offset = 100;
+                                          const elementPosition = element.getBoundingClientRect().top;
+                                          const offsetPosition = elementPosition + window.pageYOffset - offset;
+                                          window.scrollTo({
+                                            top: offsetPosition,
+                                            behavior: 'smooth'
+                                          });
+                                        }
+                                      }, 100);
                                     }
-                                  }, 100);
-                                }
-                              }}
-                            >
-                              {header.title}
-                            </a>
-                          </li>
-                        ))}
+                                  }}
+                                >
+                                  {header.title}
+                                </a>
+                              </div>
+                              
+                              {/* Show snippets under this header */}
+                              {headerSnippets.length > 0 && (
+                                <ul className={styles.snippetList} style={{ marginLeft: `${(header.level - 1) * 16 + 16}px` }}>
+                                  {headerSnippets.map((snippet, index) => (
+                                    <li key={`${section.id}-${snippet.id}-${index}`} className={styles.snippetItem}>
+                                      <a 
+                                        href={`#snippet-${snippet.id}`}
+                                        className={`${styles.tocLink} ${styles.snippetLink} ${activeId === `snippet-${snippet.id}` ? styles.active : ''}`}
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          window.history.pushState(null, '', `#snippet-${snippet.id}`);
+                                          
+                                          // Scroll to the snippet
+                                          scrollToSnippet(snippet.id);
+                                        }}
+                                      >
+                                        <span className={styles.snippetIcon}>📄</span>
+                                        {snippet.title}
+                                      </a>
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                            </li>
+                          );
+                        })}
                       </ul>
                     )}
                     
-                    {sectionSnippets.length > 0 && (
-                      <ul className={styles.snippetList}>
-                        {sectionSnippets.map((snippet) => (
-                          <li key={`${section.id}-${snippet.id}`} className={styles.snippetItem}>
-                            <a 
-                              href={`#snippet-${snippet.id}`}
-                              className={`${styles.tocLink} ${styles.snippetLink} ${activeId === `snippet-${snippet.id}` ? styles.active : ''}`}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                window.history.pushState(null, '', `#snippet-${snippet.id}`);
-                                
-                                // Scroll to the snippet
-                                scrollToSnippet(snippet.id);
-                              }}
-                            >
-                              <span className={styles.snippetIcon}>📄</span>
-                              {snippet.title}
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                    {/* Show snippets that are not under any header */}
+                    {(() => {
+                      const standaloneSnippets = sectionSnippets.filter(s => !s.header);
+                      if (standaloneSnippets.length === 0) return null;
+                      
+                      return (
+                        <ul className={styles.snippetList}>
+                          {standaloneSnippets.map((snippet, index) => (
+                            <li key={`${section.id}-${snippet.id}-${index}`} className={styles.snippetItem}>
+                              <a 
+                                href={`#snippet-${snippet.id}`}
+                                className={`${styles.tocLink} ${styles.snippetLink} ${activeId === `snippet-${snippet.id}` ? styles.active : ''}`}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  window.history.pushState(null, '', `#snippet-${snippet.id}`);
+                                  
+                                  // Scroll to the snippet
+                                  scrollToSnippet(snippet.id);
+                                }}
+                              >
+                                <span className={styles.snippetIcon}>📄</span>
+                                {snippet.title}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      );
+                    })()}
                   </div>
                 </li>
               );
