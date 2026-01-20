@@ -47,6 +47,7 @@ export default function Books({ initialBookId }: { initialBookId?: string }) {
     const [loadedSections, setLoadedSections] = useState<Set<string>>(new Set());
   const [snippets, setSnippets] = useState<any[]>([]);
   const [snippetsLoading, setSnippetsLoading] = useState(true);
+  const [currentSectionId, setCurrentSectionId] = useState<string>('');
   const router = useRouter();
   
   // Get the book ID from router query (works on both server and client)
@@ -72,7 +73,20 @@ export default function Books({ initialBookId }: { initialBookId?: string }) {
     }
   }, [books, bookId]);
 
-  
+  // Handle section parameter in URL
+  useEffect(() => {
+    if (selectedBook && router.query.section) {
+      const sectionId = router.query.section as string;
+      // Find the section with this ID
+      const sectionIndex = selectedBook.sections.findIndex(s => s.id === sectionId);
+      if (sectionIndex !== -1) {
+        setCurrentSectionId(sectionId);
+      }
+    } else if (selectedBook && selectedBook.sections.length > 0) {
+      // Default to 'index' section if no section parameter
+      setCurrentSectionId('index');
+    }
+  }, [selectedBook, router.query.section]);
 
   useEffect(() => {
     // Reset selected book only when navigating to the main books page without parameters
@@ -678,6 +692,20 @@ useEffect(() => {
                 }}
                 snippets={snippets}
                 snippetsLoading={snippetsLoading}
+                currentSectionId={currentSectionId}
+                onSectionSelect={(sectionId) => {
+                  setCurrentSectionId(sectionId);
+                  // Update URL
+                  router.push({
+                    pathname: router.pathname,
+                    query: { 
+                      book: selectedBook.id,
+                      section: sectionId
+                    }
+                  }, undefined, { });
+                  // Scroll to top
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
               />
             )}
           </aside>
@@ -713,52 +741,28 @@ useEffect(() => {
               </header>
 
               <div className={styles.articleContent}>
-                {/* Render introduction from index.rst */}
-                {selectedBook.content && selectedBook.content.length > 0 && (
-                  <section className={styles.bookSection}>
-                    <h2>Introduction</h2>
-                    {selectedBook.content.map((item, index) => {
-                      if (item.type === 'text') {
-                        const htmlContent = parseRST(item.content, 'introduction');
-                        
-                        return (
-                          <MathRenderer 
-                            key={index} 
-                            content={htmlContent}
-                          />
-                        );
-                      } else if (item.type === 'code-block') {
-                        return (
-                          <CodeBlock 
-                            key={index}
-                            code={item.content}
-                            language={item.language || 'text'}
-                          />
-                        );
-                      }
-                      return null;
-                    })}
-                  </section>
-                )}
+                {/* Render only the current section */}
 
-                {/* Render each section with lazy loading */}
-                {selectedBook.sections && selectedBook.sections.length > 0 && selectedBook.sections.map((section) => {
-                  const isLoaded = loadedSections.has(section.id);
-                  
-                  
-                  return (
-                    <section 
-                      key={section.id} 
-                      id={!isLoaded ? `section-placeholder-${section.id}` : `section-${section.id}`}
-                      className={`${styles.bookSection} ${!isLoaded ? styles.sectionLoading : ''}`}
-                      style={{
-                        opacity: isLoaded ? 1 : 0,
-                        transform: isLoaded ? 'translateY(0)' : 'translateY(20px)',
-                        transition: 'opacity 0.5s ease, transform 0.5s ease'
-                      }}
-                    >
+                                {selectedBook && selectedBook.sections && selectedBook.sections.length > 0 && (() => {
+
+                                  const sectionIndex = selectedBook.sections.findIndex(s => s.id === currentSectionId);
+const section = sectionIndex !== -1 ? selectedBook.sections[sectionIndex] : selectedBook.sections[0];
+
+                                  
+
+                                  return (
+
+                                    <section 
+
+                                      key={section.id} 
+
+                                      id={`section-${section.id}`}
+
+                                      className={styles.bookSection}
+
+                                    >
                       <h2>{section.title}</h2>
-                      {isLoaded && section.content ? (
+                      {section.content ? (
                         section.content.map((item, index) => {
                           if (item.type === 'text') {
                             const htmlContent = parseRST(item.content, section.id);
@@ -903,9 +907,11 @@ useEffect(() => {
                           <div className={styles.loadingSpinner}></div>
                         </div>
                       )}
+                      
+
                     </section>
                   );
-                })}
+                })()}
               </div>
             </article>
           </main>

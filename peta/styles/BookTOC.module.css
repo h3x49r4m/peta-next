@@ -12,6 +12,8 @@
 
 .bookTOC.expanded {
   width: auto;
+  min-width: 250px;
+  max-width: 400px;
   height: fit-content;
   max-height: calc(100vh - 120px);
 }
@@ -44,6 +46,20 @@
 
 .snippetItem {
   margin-bottom: var(--spacing-1);
+}
+
+.currentIndicator {
+  display: inline-block;
+  margin-right: 8px;
+  color: var(--primary-color);
+  font-size: 0.7em;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
 }
 
 .snippetToggle {
@@ -114,6 +130,9 @@
   padding: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   margin-right: 0.5rem;
+  min-width: 250px;
+  max-width: 400px;
+  width: max-content;
   max-height: calc(100vh - 120px);
   overflow-y: auto;
   opacity: 0;
@@ -129,16 +148,58 @@
 }
 
 .tocHeader {
-  margin-bottom: 1rem;
-  border-bottom: 1px solid #e5e5e5;
-  padding-bottom: 0.5rem;
+  padding: var(--spacing-4);
+  border-bottom: 1px solid var(--border-color);
+  background: var(--surface-color);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-width: 0; /* Allows flex items to shrink */
 }
 
 .tocTitle {
+  margin: 0;
   font-size: 1rem;
   font-weight: 600;
-  margin: 0;
-  color: #333;
+  color: var(--text-primary);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tocNavigation {
+  display: flex;
+  gap: var(--spacing-2);
+  flex-shrink: 0; /* Prevents navigation from shrinking */
+}
+
+.navButton {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.navButton:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: scale(1.1);
+}
+
+.navButton:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 .tocList {

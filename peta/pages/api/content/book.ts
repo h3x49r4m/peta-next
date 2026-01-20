@@ -31,6 +31,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const sectionFiles = await glob(`${folderPath}/*.rst`);
           const sections = [];
           
+          // First, add index.rst as a section
+          sections.push({
+            id: 'index',
+            title: parsed.frontmatter.title || 'Introduction',
+            content: parsed.content
+          });
+          
+          // Then add other section files
           for (const sectionFile of sectionFiles) {
             if (!sectionFile.endsWith('index.rst')) {
               const sectionContent = await fs.readFile(sectionFile, 'utf8');

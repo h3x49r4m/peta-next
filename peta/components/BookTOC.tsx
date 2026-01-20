@@ -20,9 +20,11 @@ interface BookTOCProps {
   };
   snippets?: any[];
   snippetsLoading?: boolean;
+  currentSectionId?: string;
+  onSectionSelect?: (sectionId: string) => void;
 }
 
-export default function BookTOC({ book, snippets = [], snippetsLoading = false }: BookTOCProps) {
+export default function BookTOC({ book, snippets = [], snippetsLoading = false, currentSectionId = '', onSectionSelect }: BookTOCProps) {
   const [activeId, setActiveId] = useState<string>('');
   const [isExpanded, setIsExpanded] = useState(false);
   const [expandedSnippets, setExpandedSnippets] = useState<Set<string>>(new Set());
@@ -297,24 +299,34 @@ export default function BookTOC({ book, snippets = [], snippetsLoading = false }
       return;
     }
     
-    // Ensure the section containing the snippet is loaded
-    const sectionPlaceholder = document.getElementById(`section-placeholder-${snippet.sectionId}`);
-    if (sectionPlaceholder) {
-      // Trigger section load by scrolling to it first
-      sectionPlaceholder.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Check if the snippet is in the current section
+    if (snippet.sectionId !== currentSectionId) {
+      // Switch to the section containing this snippet first
+      if (onSectionSelect) {
+        onSectionSelect(snippet.sectionId);
+      }
+      // Wait a bit for the section to load
+      setTimeout(() => {
+        scrollToElement(snippetId);
+      }, 300);
+    } else {
+      // Snippet is in current section, scroll directly
+      scrollToElement(snippetId);
     }
-    
+  };
+
+  const scrollToElement = (elementId: string) => {
     // Try multiple times to find the element as it might be loading
     let attempts = 0;
-    const maxAttempts = 20;
-    const retryDelay = 300;
+    const maxAttempts = 10;
+    const retryDelay = 100;
     
     const tryScroll = () => {
       attempts++;
-      const element = document.getElementById(`snippet-${snippetId}`);
+      const element = document.getElementById(`snippet-${elementId}`);
       
       if (element) {
-        // Check if the element is actually visible (not hidden by opacity 0)
+        // Check if the element is actually visible
         const computedStyle = window.getComputedStyle(element);
         const isVisible = computedStyle.opacity !== '0' && computedStyle.display !== 'none';
         
@@ -335,12 +347,12 @@ export default function BookTOC({ book, snippets = [], snippetsLoading = false }
         // Element not found yet, retry after a delay
         setTimeout(tryScroll, retryDelay);
       } else {
-        console.warn(`Snippet element not found or not visible after ${maxAttempts} attempts: snippet-${snippetId}`);
+        console.warn(`Element not found after ${maxAttempts} attempts: snippet-${elementId}`);
       }
     };
     
-    // Start trying after a small delay to allow section to load
-    setTimeout(tryScroll, 200);
+    // Start trying immediately
+    setTimeout(tryScroll, 50);
   };
 
   // Extract snippets from all sections
@@ -501,23 +513,60 @@ export default function BookTOC({ book, snippets = [], snippetsLoading = false }
         <div className={styles.tocPanel}>
           <div className={styles.tocHeader}>
             <h3 className={styles.tocTitle}>{book.title}</h3>
+            <div className={styles.tocNavigation}>
+              <button 
+                className={`${styles.navButton} ${styles.prevButton}`}
+                onClick={() => {
+                  const currentIndex = book.sections.findIndex(s => s.id === currentSectionId);
+                  if (currentIndex > 0) {
+                    const prevSection = book.sections[currentIndex - 1];
+                    if (onSectionSelect) {
+                      onSectionSelect(prevSection.id);
+                    }
+                  }
+                }}
+                disabled={!currentSectionId || book.sections.findIndex(s => s.id === currentSectionId) === 0}
+              >
+                ←
+              </button>
+              <button 
+                className={`${styles.navButton} ${styles.nextButton}`}
+                onClick={() => {
+                  const currentIndex = book.sections.findIndex(s => s.id === currentSectionId);
+                  if (currentIndex < book.sections.length - 1) {
+                    const nextSection = book.sections[currentIndex + 1];
+                    if (onSectionSelect) {
+                      onSectionSelect(nextSection.id);
+                    }
+                  }
+                }}
+                disabled={!currentSectionId || book.sections.findIndex(s => s.id === currentSectionId) === book.sections.length - 1}
+              >
+                →
+              </button>
+            </div>
           </div>
           <ul className={styles.tocList}>
             {book.sections.map((section) => {
               const sectionSnippets = getAllSnippets().filter(s => s.sectionId === section.id);
+              const isCurrentSection = section.id === currentSectionId || (!currentSectionId && section.id === 'index');
               
               return (
                 <li key={section.id}>
                   <div className={styles.sectionGroup}>
                     <a 
                       href={`#section-${section.id}`}
-                      className={`${styles.tocLink} ${styles.sectionLink} ${activeId === `section-${section.id}` || activeId === `section-placeholder-${section.id}` ? styles.active : ''}`}
+                      className={`${styles.tocLink} ${styles.sectionLink} ${isCurrentSection ? styles.active : ''} ${activeId === `section-${section.id}` || activeId === `section-placeholder-${section.id}` ? styles.active : ''}`}
                       onClick={(e) => {
                         e.preventDefault();
+                        if (onSectionSelect) {
+                          onSectionSelect(section.id);
+                        }
                         window.history.pushState(null, '', `#section-${section.id}`);
                         scrollToSection(section.id);
                       }}
                     >
+                      {isCurrentSection && <span className={styles.currentIndicator}>▶</span>}
                       {section.title}
                     </a>
                     
@@ -548,31 +597,8 @@ export default function BookTOC({ book, snippets = [], snippetsLoading = false }
                                       return newSet;
                                     });
                                     
-                                    // Ensure the section containing this snippet is loaded
-                                    const sectionPlaceholder = document.getElementById(`section-placeholder-${snippet.sectionId}`);
-                                    if (sectionPlaceholder) {
-                                      // Manually trigger the intersection observer by scrolling the placeholder into view briefly
-                                      const originalScroll = window.pageYOffset;
-                                      sectionPlaceholder.scrollIntoView({ behavior: 'auto', block: 'start' });
-                                      setTimeout(() => {
-                                        window.scrollTo(0, originalScroll);
-                                        // Now try to scroll to the snippet
-                                        setTimeout(() => {
-                                          const snippetElement = document.getElementById(`snippet-${snippet.id}`);
-                                          if (snippetElement) {
-                                            snippetElement.classList.toggle(styles.expanded);
-                                          }
-                                          scrollToSnippet(snippet.id);
-                                        }, 100);
-                                      }, 100);
-                                    } else {
-                                      // Section might already be loaded
-                                      const snippetElement = document.getElementById(`snippet-${snippet.id}`);
-                                      if (snippetElement) {
-                                        snippetElement.classList.toggle(styles.expanded);
-                                      }
-                                      setTimeout(() => scrollToSnippet(snippet.id), 50);
-                                    }
+                                    // Scroll to the snippet
+                                    scrollToSnippet(snippet.id);
                                   }}
                                 >
                                   <span 
@@ -604,21 +630,8 @@ export default function BookTOC({ book, snippets = [], snippetsLoading = false }
                                     e.preventDefault();
                                     window.history.pushState(null, '', `#snippet-${snippet.id}`);
                                     
-                                    // Ensure the section containing this snippet is loaded
-                                    const sectionPlaceholder = document.getElementById(`section-placeholder-${snippet.sectionId}`);
-                                    if (sectionPlaceholder) {
-                                      // Manually trigger the intersection observer by scrolling the placeholder into view briefly
-                                      const originalScroll = window.pageYOffset;
-                                      sectionPlaceholder.scrollIntoView({ behavior: 'auto', block: 'start' });
-                                      setTimeout(() => {
-                                        window.scrollTo(0, originalScroll);
-                                        // Now try to scroll to the snippet
-                                        setTimeout(() => scrollToSnippet(snippet.id), 100);
-                                      }, 100);
-                                    } else {
-                                      // Section might already be loaded, try scrolling directly
-                                      setTimeout(() => scrollToSnippet(snippet.id), 50);
-                                    }
+                                    // Scroll to the snippet
+                                    scrollToSnippet(snippet.id);
                                   }}
                                 >
                                   <span className={styles.snippetIcon}>📄</span>
@@ -636,82 +649,19 @@ export default function BookTOC({ book, snippets = [], snippetsLoading = false }
                                           e.preventDefault();
                                           window.history.pushState(null, '', `#${child.id}`);
                                           
-                                          // Ensure the section containing this snippet is loaded
-                                          const sectionPlaceholder = document.getElementById(`section-placeholder-${snippet.sectionId}`);
-                                          if (sectionPlaceholder) {
-                                            // Manually trigger the intersection observer by scrolling the placeholder into view briefly
-                                            const originalScroll = window.pageYOffset;
-                                            sectionPlaceholder.scrollIntoView({ behavior: 'auto', block: 'start' });
+                                          // Check if the snippet is in the current section
+                                          if (snippet.sectionId !== currentSectionId) {
+                                            // Switch to the section containing this snippet first
+                                            if (onSectionSelect) {
+                                              onSectionSelect(snippet.sectionId);
+                                            }
+                                            // Wait a bit for the section to load
                                             setTimeout(() => {
-                                              window.scrollTo(0, originalScroll);
-                                              // Now try to scroll to the header with retry mechanism
-                                              setTimeout(() => {
-                                                let attempts = 0;
-                                                const maxAttempts = 10;
-                                                const retryDelay = 200;
-                                                
-                                                const tryScrollToHeader = () => {
-                                                  attempts++;
-                                                  const element = document.getElementById(child.id);
-                                                  
-                                                  if (element) {
-                                                    // Check if the element is actually visible
-                                                    const computedStyle = window.getComputedStyle(element);
-                                                    const isVisible = computedStyle.opacity !== '0' && computedStyle.display !== 'none';
-                                                    
-                                                    if (isVisible) {
-                                                      const offset = 100;
-                                                      const elementPosition = element.getBoundingClientRect().top;
-                                                      const offsetPosition = elementPosition + window.pageYOffset - offset;
-                                                      window.scrollTo({
-                                                        top: offsetPosition,
-                                                        behavior: 'smooth'
-                                                      });
-                                                    } else if (attempts < maxAttempts) {
-                                                      setTimeout(tryScrollToHeader, retryDelay);
-                                                    }
-                                                  } else if (attempts < maxAttempts) {
-                                                    setTimeout(tryScrollToHeader, retryDelay);
-                                                  }
-                                                };
-                                                
-                                                tryScrollToHeader();
-                                              }, 200);
-                                            }, 100);
+                                              scrollToElement(child.id);
+                                            }, 300);
                                           } else {
-                                            // Section might already be loaded, try scrolling directly with retry
-                                            setTimeout(() => {
-                                              let attempts = 0;
-                                              const maxAttempts = 10;
-                                              const retryDelay = 200;
-                                              
-                                              const tryScrollToHeader = () => {
-                                                attempts++;
-                                                const element = document.getElementById(child.id);
-                                                
-                                                if (element) {
-                                                  // Check if the element is actually visible
-                                                  const computedStyle = window.getComputedStyle(element);
-                                                  const isVisible = computedStyle.opacity !== '0' && computedStyle.display !== 'none';
-                                                  
-                                                  if (isVisible) {
-                                                    const offset = 100;
-                                                    const elementPosition = element.getBoundingClientRect().top;
-                                                    const offsetPosition = elementPosition + window.pageYOffset - offset;
-                                                    window.scrollTo({
-                                                      top: offsetPosition,
-                                                      behavior: 'smooth'
-                                                    });
-                                                  } else if (attempts < maxAttempts) {
-                                                    setTimeout(tryScrollToHeader, retryDelay);
-                                                  }
-                                                } else if (attempts < maxAttempts) {
-                                                  setTimeout(tryScrollToHeader, retryDelay);
-                                                }
-                                              };
-                                              
-                                              tryScrollToHeader();
-                                            }, 50);
+                                            // Snippet is in current section, scroll directly
+                                            scrollToElement(child.id);
                                           }
                                         }}
                                       >
