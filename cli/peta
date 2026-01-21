@@ -111,22 +111,6 @@ init_site() {
     # Make the peta CLI executable
     chmod +x "$site_path/cli/peta"
     
-    # Copy WASM files (they're not tracked by git)
-    print_info "Copying WebAssembly files..."
-    if [ -d "$PROJECT_ROOT/peta/processors/wasm-bindings" ]; then
-        # Create the directory in the new site
-        mkdir -p "$site_path/peta/processors/wasm-bindings"
-        
-        # Copy all files except .gitignore
-        for file in "$PROJECT_ROOT/peta/processors/wasm-bindings"/*; do
-            filename=$(basename "$file")
-            if [ "$filename" != ".gitignore" ]; then
-                cp -r "$file" "$site_path/peta/processors/wasm-bindings/"
-            fi
-        done
-        print_info "WebAssembly files copied successfully!"
-    fi
-    
     # Change to the new site directory and install dependencies
     print_info "Installing dependencies..."
     cd "$site_path/peta"

@@ -1,0 +1,15 @@
+{
+  "name": "rst-parser",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "rst_parser_bg.wasm",
+    "rst_parser.js",
+    "rst_parser.d.ts"
+  ],
+  "main": "rst_parser.js",
+  "types": "rst_parser.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
