@@ -34,6 +34,7 @@ Usage:
     peta <command> [options]
 
 Commands:
+    init site <path>         Initialize a new Peta site
     init <type> "<title>"    Create a new content file
     dev                      Start development server
     build                    Build for production
@@ -46,6 +47,8 @@ Content Types:
     project                  Create a new project
 
 Examples:
+    peta init site /path/to/my-site
+    peta init site ./my-blog
     peta init article "My First Article"
     peta init snippet "Useful Code Snippet"
     peta init project "My Awesome Project"
@@ -56,10 +59,81 @@ Examples:
 EOF
 }
 
+# Function to initialize a new site
+init_site() {
+    local site_path="$1"
+    
+    if [ -z "$site_path" ]; then
+        print_error "Site path is required"
+        print_info "Usage: peta init site <path>"
+        exit 1
+    fi
+    
+    # Convert to absolute path
+    if [[ "$site_path" != /* ]]; then
+        site_path="$(pwd)/$site_path"
+    fi
+    
+    # Check if directory already exists
+    if [ -d "$site_path" ]; then
+        print_error "Directory already exists: $site_path"
+        exit 1
+    fi
+    
+    print_info "Creating new Peta site at: $site_path"
+    
+    # Create the site directory
+    mkdir -p "$site_path"
+    
+    # Copy directories from current project
+    print_info "Copying _content directory..."
+    cp -r "$PROJECT_ROOT/_content" "$site_path/"
+    
+    print_info "Copying cli directory..."
+    cp -r "$PROJECT_ROOT/cli" "$site_path/"
+    
+    print_info "Copying peta directory..."
+    cp -r "$PROJECT_ROOT/peta" "$site_path/"
+    
+    # Copy other necessary files
+    if [ -f "$PROJECT_ROOT/LICENSE" ]; then
+        cp "$PROJECT_ROOT/LICENSE" "$site_path/"
+    fi
+    
+    if [ -f "$PROJECT_ROOT/README.rst" ]; then
+        cp "$PROJECT_ROOT/README.rst" "$site_path/"
+    fi
+    
+    if [ -f "$PROJECT_ROOT/.gitignore" ]; then
+        cp "$PROJECT_ROOT/.gitignore" "$site_path/"
+    fi
+    
+    # Make the peta CLI executable
+    chmod +x "$site_path/cli/peta"
+    
+    # Change to the new site directory and install dependencies
+    print_info "Installing dependencies..."
+    cd "$site_path/peta"
+    npm install
+    
+    print_success "Site initialized successfully!"
+    print_info ""
+    print_info "Next steps:"
+    print_info "  cd $site_path"
+    print_info "  ./cli/peta dev"
+    print_info ""
+    print_info "Your new site is ready to use!"
+}
+
 # Function to initialize content
 init_content() {
     local type="$1"
     local title="$2"
+    
+    if [ "$type" = "site" ]; then
+        init_site "$2"
+        return
+    fi
     
     if [ -z "$type" ] || [ -z "$title" ]; then
         print_error "Both type and title are required"
@@ -134,7 +208,11 @@ run_tests() {
 # Main script logic
 case "${1:-help}" in
     init)
-        init_content "$2" "$3"
+        if [ "$2" = "site" ]; then
+            init_site "$3"
+        else
+            init_content "$2" "$3"
+        fi
         ;;
     dev)
         start_dev
