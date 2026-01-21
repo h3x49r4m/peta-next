@@ -103,6 +103,18 @@ Note: The Rust and wasm-pack tools compile the RST parser to WebAssembly, provid
 Installation
 ~~~~~~~~~~~~
 
+**Option 1: Create a New Site**
+
+Create a new Peta site with all directories and dependencies::
+
+    ./cli/peta init site my-new-site
+    cd my-new-site
+    ./cli/peta dev
+
+This creates a complete site structure and starts the development server at http://localhost:3000
+
+**Option 2: Clone Existing Repository**
+
 1. Clone the repository::
 
     git clone https://github.com/h3x49r4m/peta.git
@@ -112,11 +124,7 @@ Installation
 
     npm install
 
-3. (Optional) Add CLI tools to your PATH::
-
-    export PATH="$PATH:$PWD/tools"
-
-4. Start the development server::
+3. Start the development server::
 
     npm run dev
     # or using the CLI tool
@@ -124,7 +132,7 @@ Installation
 
    The server will be available at http://localhost:3000
 
-5. Build for production::
+4. Build for production::
 
     npm run build && npm run export
     # or using the CLI tool
@@ -226,7 +234,26 @@ The site's features can be configured via ``/peta/configs/features.json``:
 CLI Tools
 ---------
 
-The Peta CLI provides convenient commands for managing content. For detailed documentation, see ``cli/README.rst``.
+The Peta CLI provides convenient commands for managing content and creating new sites. For detailed documentation, see ``cli/README.rst``.
+
+Creating a New Site
+~~~~~~~~~~~~~~~~~~~
+
+Initialize a new Peta site with all directories and dependencies::
+
+    ./cli/peta init site /path/to/my-site
+    ./cli/peta init site ./my-blog
+
+This creates a complete site structure with:
+- ``_content/`` - Content directories with example content
+- ``cli/`` - CLI tools for content management
+- ``peta/`` - Next.js application with all dependencies installed
+- ``LICENSE``, ``README.rst``, ``.gitignore`` - Project files
+
+After creating a new site::
+
+    cd my-blog
+    ./cli/peta dev
 
 Creating Content
 ~~~~~~~~~~~~~~~~
@@ -246,8 +273,11 @@ Content files are automatically created in the appropriate ``_content/`` directo
 Development Commands
 ~~~~~~~~~~~~~~~~~~~
 
-- ``peta dev``: Start development server
+- ``peta init site <path>``: Initialize a new Peta site
+- ``peta init <type> "Title"``: Create new content (article, snippet, project)
+- ``peta dev``: Start development server (automatically processes content)
 - ``peta build``: Build for production
+- ``peta test``: Run all tests
 - ``peta help``: Show help information
 
 Build Commands
