@@ -140,16 +140,32 @@ This creates a complete site structure and starts the development server at http
 
    The static files will be generated in the ``out/`` directory.
 
-Content Structure
+Project Structure
 -----------------
 
 ::
 
+   peta/
+   ├── configs/         # Configuration files
+   │   ├── site.json    # Site information and social links
+   │   └── features.json # Feature flags
+   ├── pages/           # Next.js pages and API routes
+   ├── components/      # React components
+   ├── styles/          # CSS modules
+   ├── utils/           # Utility functions
+   └── processors/      # Content processing modules
+   
    _content/
-   ├── articles/       # Articles and documentation
-   ├── snippets/       # Reusable content snippets
-   ├── projects/       # Project showcases
-   └── books/          # Multi-section books with toctree
+   ├── articles/        # Articles and documentation
+   ├── snippets/        # Reusable content snippets
+   ├── projects/        # Project showcases
+   └── books/           # Multi-section books with toctree
+
+Configuration Files
+~~~~~~~~~~~~~~~~~~~
+
+- **configs/site.json**: Site metadata, author info, and social media links
+- **configs/features.json**: Feature flags to enable/disable site modules
 
 Content Format
 ~~~~~~~~~~~~~~
@@ -208,8 +224,13 @@ The website engine supports LaTeX math expressions:
 
 Math is rendered to SVG during build time for optimal performance.
 
+Configuration
+-------------
+
+The site uses configuration files in ``/peta/configs/`` to customize behavior and appearance.
+
 Feature Configuration
----------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 The site's features can be configured via ``/peta/configs/features.json``:
 
@@ -230,6 +251,53 @@ The site's features can be configured via ``/peta/configs/features.json``:
 - **articles**: Article browsing with full-text reading
 - **snippets**: Code snippet gallery with syntax highlighting
 - **projects**: Portfolio-style project showcase
+
+Site Configuration
+~~~~~~~~~~~~~~~~~~~
+
+Site information and social links can be configured via ``/peta/configs/site.json``:
+
+.. code-block:: json
+
+   {
+     "site": {
+       "name": "My Blog",
+       "description": "A high-performance static website",
+       "url": "https://myblog.com"
+     },
+     "author": {
+       "name": "John Doe",
+       "email": "john@example.com"
+     },
+     "social": {
+       "github": "https://github.com/username",
+       "x": "https://x.com/username",
+       "linkedin": "https://linkedin.com/in/username"
+     },
+     "footer": {
+       "copyright": "© 2024 My Blog. All rights reserved.",
+       "customText": "Built with ❤️ and Next.js"
+     }
+   }
+
+**Configuration Options**
+
+- **site.name**: Site name displayed in navigation and header
+- **site.description**: Site description shown on the homepage
+- **site.url**: Base URL for the site (used for SEO and social sharing)
+- **author.name**: Author name for attribution
+- **author.email**: Contact email (linked in footer)
+- **social.github**: GitHub profile URL
+- **social.x**: X (formerly Twitter) profile URL
+- **social.linkedin**: LinkedIn profile URL
+- **footer.copyright**: Copyright text in footer
+- **footer.customText**: Additional custom text in footer
+
+The configuration is automatically applied throughout the site:
+- Navigation bar shows the configured site name
+- Footer displays configured social links and copyright
+- Homepage shows welcome message with site description
+- SEO meta tags use site information for better search engine visibility
 
 CLI Tools
 ---------
@@ -279,6 +347,16 @@ Development Commands
 - ``peta build``: Build for production
 - ``peta test``: Run all tests
 - ``peta help``: Show help information
+
+Configuration Management
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After creating a new site, you can customize it by editing:
+
+- ``peta/configs/site.json`` - Site information, author details, and social links
+- ``peta/configs/features.json`` - Enable/disable site modules
+
+The site automatically reloads configuration changes in development mode.
 
 Build Commands
 ~~~~~~~~~~~~~~
