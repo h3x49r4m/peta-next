@@ -1,4 +1,4 @@
-Peta
+Peta (next.js)
 ===============================================
 
 A powerful dynamic content engine built with Next.js, designed for content-heavy sites including documentation, educational platforms, and knowledge bases. Features advanced content processing, mathematical rendering, and a flexible feature management system.
