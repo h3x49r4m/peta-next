@@ -82,6 +82,12 @@ Architecture
                          │                  │
                          └──────────────────┘
 
+Data Flow
+
+::
+
+  Browser → Next.js Page → fetch() API → Content Processors → File System
+
 **Technology Stack**
 
 - **Frontend**: Next.js 14.2.35 with React 18, TypeScript
@@ -90,13 +96,6 @@ Architecture
 - **Styling**: CSS Modules with custom styling
 - **Math Rendering**: KaTeX (client-side) + MathJax Node integration
 - **Build System**: Custom CLI script + Next.js build system
-
-**Data Flow Issues**
-
-**Development Mode (Working):**
-::
-
-  Browser → Next.js Page → fetch() API → Content Processors → File System
 
 
 Getting Started
